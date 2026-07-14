@@ -1,0 +1,203 @@
+import { CELL_CX, CELL_CY, SHEAR, STEP_X, STEP_Y } from './const';
+import { drawSprite, hasSprite } from './assets';
+import type { Game } from './game';
+import type { Entity } from './level';
+import { brickTotal } from './level';
+import type { TerrainId } from '../data/types';
+
+const TERRAIN_SPRITE: Record<TerrainId, string> = {
+  normal: 'terrain.normal',
+  rocky: 'terrain.normal_undiggable',
+  mountain: 'terrain.mountain',
+  tree: 'terrain.tree',
+  water: 'terrain.water',
+  deep: 'terrain.water_undiggable',
+  reef: 'terrain.water_reefs',
+  swamp: 'terrain.swamp',
+  volcano: 'terrain.volcano',
+  hole: 'terrain.water_undiggable',
+  billboard: 'terrain.billboard',
+  whirl: 'terrain.water_whirlpool',
+};
+
+const WATERY = new Set<TerrainId>(['water', 'deep', 'reef', 'whirl']);
+
+export class Camera {
+  x = 0;
+  y = 0;
+  centerOn(cx: number, cy: number, vw: number, vh: number): void {
+    this.x = cx * STEP_X - cy * SHEAR + CELL_CX - vw / 2;
+    this.y = cy * STEP_Y + CELL_CY - vh / 2;
+  }
+}
+
+/** 셀 앵커(윗면 좌상단)의 월드 픽셀 좌표 */
+export function cellAnchor(x: number, y: number): [number, number] {
+  return [x * STEP_X - y * SHEAR, y * STEP_Y];
+}
+
+/** 화면 좌표 → 셀 좌표 */
+export function pickCell(sx: number, sy: number, cam: Camera): [number, number] {
+  const wx = sx + cam.x, wy = sy + cam.y;
+  const y = Math.floor(wy / STEP_Y);
+  const x = Math.floor((wx + SHEAR * y) / STEP_X);
+  return [x, y];
+}
+
+function entPixel(e: Entity): [number, number] {
+  const t = e.moving ? e.moveT : 1;
+  const ix = e.fromX + (e.x - e.fromX) * t;
+  const iy = e.fromY + (e.y - e.fromY) * t;
+  return [ix * STEP_X - iy * SHEAR + CELL_CX, iy * STEP_Y + CELL_CY];
+}
+
+/** 유닛 스프라이트 이름 결정 — 상태 접미사에서 구체적 → 일반 순으로 폴백 */
+function unitSpriteName(e: Entity, onWater: boolean, time: number): string {
+  const base = e.cls === 'building' ? `building.${e.type}` : `${e.type === 'boulder' ? 'monster' : e.cls === 'monster' ? 'monster' : 'vehicle'}.${e.type}`;
+  if (e.type === 'boulder') return hasSprite('monster.boulder') ? 'monster.boulder' : 'object.boulder';
+  const parts: string[] = [];
+  if (e.def.waterversion && onWater) parts.push('water');
+  parts.push(e.dir);
+  const full = brickTotal(e.carrying) > 0 || e.hasDirt || e.hasTree;
+  const frame = Math.floor(time * 6) % 6 + 1;
+  const candidates: string[] = [];
+  const p = parts.join('.');
+  if (full) {
+    if (e.moving) candidates.push(`${base}.${p}.full.walk.${((frame - 1) % 4) + 1}`);
+    candidates.push(`${base}.${p}.full`);
+  }
+  if (e.moving) {
+    candidates.push(`${base}.${p}.walk.${((frame - 1) % 4) + 1}`, `${base}.${p}.walk.${((frame - 1) % 6) + 1}`);
+  }
+  candidates.push(`${base}.${p}`, `${base}.${e.dir}`, base, `${base}.down`);
+  for (const c of candidates) if (hasSprite(c)) return c;
+  return candidates[candidates.length - 1];
+}
+
+export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, time: number): void {
+  const lv = game.level;
+  const vw = ctx.canvas.width, vh = ctx.canvas.height;
+  ctx.clearRect(0, 0, vw, vh);
+  ctx.save();
+  ctx.translate(-Math.round(cam.x), -Math.round(cam.y));
+
+  // 행 단위 페인터 순서로 지형 → 오브젝트 → 엔티티
+  const entByRow = new Map<number, Entity[]>();
+  for (const e of lv.entities) {
+    if (e.dead) continue;
+    const row = e.moving && e.moveT < 0.5 ? e.fromY : e.y;
+    const arr = entByRow.get(row) ?? [];
+    arr.push(e);
+    entByRow.set(row, arr);
+  }
+
+  for (let y = 0; y < lv.h; y++) {
+    // 1) 지형 타일
+    for (let x = 0; x < lv.w; x++) {
+      const [ax, ay] = cellAnchor(x, y);
+      const t = lv.terrain[y][x];
+      let name = TERRAIN_SPRITE[t];
+      if (t === 'whirl') {
+        const f = Math.floor(time * 5) % 4 + 1;
+        if (hasSprite(`whirlpool.generic.whirl.${f}`)) name = TERRAIN_SPRITE.water;
+      }
+      if (!drawSprite(ctx, name, ax, ay)) {
+        // 폴백: 단색
+        ctx.fillStyle = WATERY.has(t) ? '#3d85c8' : '#7ec850';
+        ctx.fillRect(ax, ay, STEP_X, STEP_Y);
+      }
+      if (t === 'whirl') {
+        const f = Math.floor(time * 5) % 4 + 1;
+        drawSprite(ctx, `whirlpool.generic.whirl.${f}`, ax + CELL_CX, ay + CELL_CY);
+      }
+    }
+    // 2) 골 마커 / 플랜 / 브릭 더미
+    for (const g of lv.goals) {
+      if (g.y !== y || g.done) continue;
+      const [ax, ay] = cellAnchor(g.x, g.y);
+      const cx = ax + CELL_CX, cy = ay + CELL_CY;
+      const onWater = WATERY.has(lv.terrain[g.y][g.x]);
+      drawSprite(ctx, onWater ? 'goal.shadow.water' : 'goal.shadow.normal', cx, cy);
+      const bob = Math.sin(time * 3 + g.x) * 4;
+      drawSprite(ctx, g.bonus ? 'goal.bonus' : 'goal.goal', cx, cy + bob - 8);
+    }
+    for (const [k, plan] of lv.mapPlans) {
+      const [px, py] = k.split(',').map(Number);
+      if (py !== y) continue;
+      const [ax, ay] = cellAnchor(px, py);
+      const bob = Math.sin(time * 3 + px) * 3;
+      const name = `vehicle.${plan.unit}.plan`;
+      const alt = `building.${plan.unit}.plan`;
+      drawSprite(ctx, hasSprite(name) ? name : alt, ax + CELL_CX, ay + CELL_CY + bob - 6);
+    }
+    for (const [k, pile] of lv.piles) {
+      const [px, py] = k.split(',').map(Number);
+      if (py !== y) continue;
+      const [ax, ay] = cellAnchor(px, py);
+      drawPile(ctx, pile.bricks, ax + CELL_CX, ay + CELL_CY);
+    }
+    // 3) 엔티티
+    const ents = entByRow.get(y);
+    if (ents) {
+      ents.sort((a, b) => a.x - b.x);
+      for (const e of ents) {
+        const [ex, ey] = entPixel(e);
+        const onWater = WATERY.has(lv.terrain[e.y][e.x]);
+        if (game.selected?.id === e.id) {
+          ctx.strokeStyle = '#ffee58';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.ellipse(ex, ey + 6, 24, 11, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        const name = unitSpriteName(e, onWater, time);
+        if (!drawSprite(ctx, name, ex, ey)) {
+          ctx.fillStyle = e.cls === 'monster' ? '#e53935' : '#fff';
+          ctx.fillRect(ex - 8, ey - 8, 16, 16);
+        }
+        // 몬스터 휴식 표시
+        if (e.cls === 'monster' && e.resting && e.type !== 'boulder') {
+          ctx.fillStyle = 'rgba(255,255,255,.85)';
+          ctx.font = 'bold 12px sans-serif';
+          ctx.fillText('z z', ex + 10, ey - 18);
+        }
+        // 체력바 (전투 중 손상시)
+        if (e.hp < 100) {
+          ctx.fillStyle = '#222';
+          ctx.fillRect(ex - 14, ey - 26, 28, 4);
+          ctx.fillStyle = e.hp > 40 ? '#66bb6a' : '#ef5350';
+          ctx.fillRect(ex - 14, ey - 26, 28 * Math.max(0, e.hp) / 100, 4);
+        }
+      }
+    }
+  }
+  ctx.restore();
+}
+
+function drawPile(ctx: CanvasRenderingContext2D, bricks: Record<string, number | undefined>, cx: number, cy: number): void {
+  // 색상별로 작게 분산 배치, 수량에 따라 스프라이트 크기 단계 선택
+  const entries = Object.entries(bricks).filter(([, n]) => (n ?? 0) > 0);
+  let i = 0;
+  for (const [color, n] of entries) {
+    const count = n ?? 0;
+    const off = entries.length > 1 ? [(i % 2) * 14 - 7, Math.floor(i / 2) * 8 - 4] : [0, 0];
+    let name: string;
+    if (color === 'wheel') name = 'resource.wheel';
+    else if (color === 'energy') name = 'resource.energy';
+    else name = `resource.${color}.${count >= 10 ? 4 : count >= 6 ? 3 : count >= 3 ? 2 : 1}`;
+    if (!drawSprite(ctx, name, cx + off[0], cy + off[1])) {
+      ctx.fillStyle = { red: '#e53935', yellow: '#fdd835', blue: '#1e88e5', green: '#43a047', wheel: '#555', energy: '#8bc34a' }[color] ?? '#999';
+      ctx.fillRect(cx + off[0] - 5, cy + off[1] - 5, 10, 10);
+    }
+    if (count > 1) {
+      ctx.fillStyle = '#fff';
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2.5;
+      ctx.font = 'bold 11px sans-serif';
+      const label = String(count);
+      ctx.strokeText(label, cx + off[0] + 8, cy + off[1] + 4);
+      ctx.fillText(label, cx + off[0] + 8, cy + off[1] + 4);
+    }
+    i++;
+  }
+}
