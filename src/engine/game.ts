@@ -35,6 +35,8 @@ export class Game {
   bonusDone = false;
   paused = false;
   time = 0;
+  /** 커서가 올라간 셀 (조립 범위 표시용) */
+  hover: { x: number; y: number } | null = null;
   private ev: GameEvents;
 
   constructor(def: LevelDef, ev: GameEvents) {
@@ -231,6 +233,30 @@ export class Game {
     this.ev.selectionChanged();
   }
 
+  /**
+   * 3×3 조립 판정 — 원본 UX: 플랜 선택 시 커서 중심 3×3 범위 안에
+   * 레시피 재료가 모두 있으면 중앙 칸에 조립 가능.
+   */
+  buildCheck(unit: string, x: number, y: number): { ok: boolean; reason: string | null } {
+    const lv = this.level;
+    const def = unitDefOf(unit);
+    if (!def) return { ok: false, reason: '알 수 없는 유닛' };
+    const t = lv.terrainAt(x, y);
+    if (!t || !def.terrain.includes(t)) return { ok: false, reason: '이 유닛을 지을 수 없는 지형입니다' };
+    if (lv.entityAt(x, y)) return { ok: false, reason: '이미 유닛이 있습니다' };
+    const avail: Bricks = {};
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+      const p = lv.piles.get(lv.key(x + dx, y + dy));
+      if (p) for (const [c, n] of Object.entries(p.bricks)) avail[c as keyof Bricks] = (avail[c as keyof Bricks] ?? 0) + (n ?? 0);
+    }
+    for (const [c, need] of Object.entries(def.recipe)) {
+      if ((avail[c as keyof Bricks] ?? 0) < (need ?? 0)) {
+        return { ok: false, reason: `브릭 부족: ${c} ${need}개 필요 (범위 안에 ${avail[c as keyof Bricks] ?? 0}개)` };
+      }
+    }
+    return { ok: true, reason: null };
+  }
+
   tryBuild(planIdx: number, x: number, y: number): void {
     const lv = this.level;
     const plan = lv.planInv[planIdx];
@@ -238,24 +264,14 @@ export class Game {
     if (!plan || plan.uses <= 0) { this.ev.selectionChanged(); return; }
     const def = unitDefOf(plan.unit);
     if (!def) return;
-    const t = lv.terrainAt(x, y);
-    if (!t || !def.terrain.includes(t)) { this.ev.toast('이 유닛을 지을 수 없는 지형입니다'); this.ev.selectionChanged(); return; }
-    if (lv.entityAt(x, y)) { this.ev.toast('이미 유닛이 있습니다'); this.ev.selectionChanged(); return; }
-    // 대상 칸 + 8방향 칸의 브릭으로 레시피 충족 확인
+    const check = this.buildCheck(plan.unit, x, y);
+    if (!check.ok) {
+      if (check.reason) this.ev.toast(check.reason);
+      this.ev.selectionChanged();
+      return;
+    }
     const cells: string[] = [];
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) cells.push(lv.key(x + dx, y + dy));
-    const avail: Bricks = {};
-    for (const k of cells) {
-      const p = lv.piles.get(k);
-      if (p) for (const [c, n] of Object.entries(p.bricks)) avail[c as keyof Bricks] = (avail[c as keyof Bricks] ?? 0) + (n ?? 0);
-    }
-    for (const [c, need] of Object.entries(def.recipe)) {
-      if ((avail[c as keyof Bricks] ?? 0) < (need ?? 0)) {
-        this.ev.toast(`브릭 부족: ${c} ${need}개 필요 (주변에 ${avail[c as keyof Bricks] ?? 0}개)`);
-        this.ev.selectionChanged();
-        return;
-      }
-    }
     // 소모
     for (const [c, needRaw] of Object.entries(def.recipe)) {
       let need = needRaw ?? 0;

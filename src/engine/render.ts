@@ -171,6 +171,46 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
       }
     }
   }
+  // 조립 모드: 커서 중심 3×3 범위 오버레이 (원본 UX 재현)
+  if (game.mode.type === 'build' && game.hover) {
+    const { x: hx, y: hy } = game.hover;
+    if (hx >= 0 && hy >= 0 && hx < lv.w && hy < lv.h) {
+      const plan = lv.planInv[game.mode.planIdx];
+      const ok = plan ? game.buildCheck(plan.unit, hx, hy).ok : false;
+      drawBuildRange(ctx, hx, hy, ok, time);
+    }
+  }
+
+  ctx.restore();
+}
+
+/** 3×3 조립 범위: 사선 투영 평행사변형 점선 테두리 + 중앙 칸 강조 */
+function drawBuildRange(ctx: CanvasRenderingContext2D, cx: number, cy: number, ok: boolean, time: number): void {
+  const [tlx, tly] = cellAnchor(cx - 1, cy - 1);
+  const w3 = STEP_X * 3, h3 = STEP_Y * 3, sh3 = SHEAR * 3;
+  ctx.save();
+  ctx.lineWidth = 3;
+  ctx.setLineDash([10, 7]);
+  ctx.lineDashOffset = -time * 24; // 점선이 흐르는 애니메이션
+  ctx.strokeStyle = ok ? 'rgba(120,255,120,.95)' : 'rgba(255,90,90,.95)';
+  ctx.fillStyle = ok ? 'rgba(120,255,120,.12)' : 'rgba(255,90,90,.10)';
+  const para = (x: number, y: number, w: number, h: number, sh: number) => {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + w, y);
+    ctx.lineTo(x + w - sh, y + h);
+    ctx.lineTo(x - sh, y + h);
+    ctx.closePath();
+  };
+  para(tlx, tly, w3, h3, sh3);
+  ctx.fill();
+  ctx.stroke();
+  // 중앙 칸(조립 위치) 강조
+  const [ax, ay] = cellAnchor(cx, cy);
+  ctx.setLineDash([]);
+  ctx.lineWidth = 2;
+  para(ax, ay, STEP_X, STEP_Y, SHEAR);
+  ctx.stroke();
   ctx.restore();
 }
 

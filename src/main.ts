@@ -129,12 +129,16 @@ function startMission(def: LevelDef): void {
   let dragging = false, lastX = 0, lastY = 0, movedPx = 0;
   canvas.onmousedown = e => { dragging = true; movedPx = 0; lastX = e.clientX; lastY = e.clientY; };
   canvas.onmousemove = e => {
+    const rect = canvas.getBoundingClientRect();
+    const [hx, hy] = pickCell(e.clientX - rect.left, e.clientY - rect.top, cam);
+    g.hover = { x: hx, y: hy };
     if (!dragging) return;
     cam.x -= e.clientX - lastX;
     cam.y -= e.clientY - lastY;
     movedPx += Math.abs(e.clientX - lastX) + Math.abs(e.clientY - lastY);
     lastX = e.clientX; lastY = e.clientY;
   };
+  canvas.onmouseleave = () => { g.hover = null; };
   canvas.onmouseup = e => {
     dragging = false;
     if (movedPx > 6) return; // 드래그였음
