@@ -84,12 +84,3 @@ export function drawSprite(ctx: CanvasRenderingContext2D, name: string, ax: numb
   ctx.drawImage(img, Math.round(ax - info.regX), Math.round(ay - info.regY));
   return true;
 }
-
-/** 등록점 무시하고 (cx, cy) 에 중앙 정렬로 그린다 — UI 오버레이용 */
-export function drawSpriteCentered(ctx: CanvasRenderingContext2D, name: string, cx: number, cy: number): boolean {
-  const info = SPRITE_MANIFEST[name];
-  const img = images.get(name);
-  if (!info || !img) return false;
-  ctx.drawImage(img, Math.round(cx - info.w / 2), Math.round(cy - info.h / 2));
-  return true;
-}

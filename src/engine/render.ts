@@ -1,6 +1,8 @@
 import { CELL_CX, CELL_CY, SHEAR, STEP_X, STEP_Y } from './const';
-import { drawSprite, drawSpriteCentered, hasSprite } from './assets';
-import { drawBonusStar, drawGoalMark } from './customSprites';
+import { drawSprite, hasSprite } from './assets';
+import {
+  drawActionArrow, drawActionMiddle, drawActionNegative, drawBonusStar, drawGoalMark,
+} from './customSprites';
 import type { Game } from './game';
 import type { Entity } from './level';
 import { brickTotal } from './level';
@@ -193,18 +195,19 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
 }
 
 const ADJACENT_ACTIONS = new Set(['pickup', 'drop', 'dig', 'fill', 'uproot', 'plant']);
+// 사선 투영에서 각 그리드 방향의 화면 벡터: +x=(51,0), +y=(-24,54)
 const ARROW_DIRS = [
-  { dx: 0, dy: -1, sprite: 'action_arrow_up' },
-  { dx: 0, dy: 1, sprite: 'action_arrow_down' },
-  { dx: -1, dy: 0, sprite: 'action_arrow_left' },
-  { dx: 1, dy: 0, sprite: 'action_arrow_right' },
+  { dx: 0, dy: -1, angle: Math.atan2(-STEP_Y, SHEAR) },
+  { dx: 0, dy: 1, angle: Math.atan2(STEP_Y, -SHEAR) },
+  { dx: -1, dy: 0, angle: Math.PI },
+  { dx: 1, dy: 0, angle: 0 },
 ];
 
 /**
- * 능력 사용 방향 표시 (원본 action_arrow_* 스프라이트):
+ * 능력 사용 방향 표시 (커스텀 벡터 — 원본 action_arrow_* 대체):
  * 인접 대상 액션 모드일 때 유닛 사방에 화살표 표시 —
- * 실행 가능한 방향은 화살표, 불가능한 방향은 negative 스프라이트.
- * 유닛 발밑 칸에서도 가능하면 middle 마커 표시.
+ * 실행 가능한 방향은 화살표, 불가능한 방향은 불가 마커.
+ * 유닛 발밑 칸에서도 가능하면 타원 링 표시.
  */
 function drawActionArrows(ctx: CanvasRenderingContext2D, game: Game, time: number): void {
   const sel = game.selected;
@@ -213,16 +216,16 @@ function drawActionArrows(ctx: CanvasRenderingContext2D, game: Game, time: numbe
   const action = mode as 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant';
   const lv = game.level;
   const bob = Math.sin(time * 5) * 2;
-  for (const { dx, dy, sprite } of ARROW_DIRS) {
+  for (const { dx, dy, angle } of ARROW_DIRS) {
     const x = sel.x + dx, y = sel.y + dy;
     if (x < 0 || y < 0 || x >= lv.w || y >= lv.h) continue;
     const [ax, ay] = cellAnchor(x, y);
-    const ok = game.canActAt(sel, action, x, y);
-    drawSpriteCentered(ctx, ok ? sprite : 'action_arrow_negative', ax + CELL_CX, ay + CELL_CY + (ok ? bob : 0));
+    if (game.canActAt(sel, action, x, y)) drawActionArrow(ctx, ax + CELL_CX, ay + CELL_CY + bob, angle);
+    else drawActionNegative(ctx, ax + CELL_CX, ay + CELL_CY);
   }
   if (game.canActAt(sel, action, sel.x, sel.y)) {
     const [ax, ay] = cellAnchor(sel.x, sel.y);
-    drawSpriteCentered(ctx, 'action_arrow_middle', ax + CELL_CX, ay + CELL_CY + 14 + bob);
+    drawActionMiddle(ctx, ax + CELL_CX, ay + CELL_CY + 8 + bob * 0.5);
   }
 }
 
