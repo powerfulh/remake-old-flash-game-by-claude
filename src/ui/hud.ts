@@ -1,4 +1,5 @@
 import type { Game, ActionMode } from '../engine/game';
+import { playSfxEvent } from '../engine/audio';
 import { brickTotal, unitDefOf } from '../engine/level';
 
 const BRICK_KO: Record<string, string> = {
@@ -75,6 +76,7 @@ export class Hud {
         if (extra) { extra(); return; }
         if (m) this.game.setMode(mode.type === m.type ? { type: 'move' } : m);
       };
+      b.onmouseenter = () => playSfxEvent('rollover');
       actions.appendChild(b);
     };
     btn('이동 (기본)', { type: 'move' });
@@ -101,9 +103,13 @@ export class Hud {
       if (mode.type === 'build' && mode.planIdx === i) b.classList.add('active');
       b.onclick = () => {
         const cur = this.game.mode;
-        this.game.setMode(cur.type === 'build' && cur.planIdx === i ? { type: 'move' } : { type: 'build', planIdx: i });
+        this.game.setMode(
+          cur.type === 'build' && cur.planIdx === i ? { type: 'move' } : { type: 'build', planIdx: i },
+          'click_plan',
+        );
         this.updatePlans();
       };
+      b.onmouseenter = () => playSfxEvent('rollover');
       wrap.appendChild(b);
     });
   }

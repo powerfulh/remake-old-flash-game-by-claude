@@ -2,7 +2,7 @@ import { LEVELS } from './data/generated/levels';
 import { SPRITE_MANIFEST } from './data/generated/sprites';
 import type { LevelDef } from './data/types';
 import { loadSprites } from './engine/assets';
-import { playMenuBgm, playStageBgm, preloadAudio, stopBgm } from './engine/audio';
+import { playMenuBgm, playSfxEvent, playStageBgm, preloadAudio, stopBgm } from './engine/audio';
 import { Game } from './engine/game';
 import { Camera, pickCell, render } from './engine/render';
 import { Hud } from './ui/hud';
@@ -62,7 +62,7 @@ function showMenu(): void {
     const st = progress.done[`${lv.world}.${lv.mission}`];
     b.innerHTML = `<span class="num">${lv.mission}${st?.goal ? ' ✅' : ''}${st?.bonus ? '⭐' : ''}</span>${lv.name}`;
     b.disabled = !isUnlocked(lv.world, lv.mission);
-    b.onclick = () => startMission(lv);
+    b.onclick = () => { playSfxEvent('click_mission'); startMission(lv); };
     grid.appendChild(b);
   }
   menu.appendChild(grid);

@@ -4,7 +4,7 @@ import { CONFIG } from './const';
 import { brickTotal, Entity, LevelState, unitDefOf } from './level';
 import type { Dir } from './level';
 import { findPath, findPathAdjacent } from './path';
-import { playSfx } from './audio';
+import { playSfxEvent, type SfxEvent } from './audio';
 
 export type ActionMode =
   | { type: 'move' }
@@ -50,13 +50,16 @@ export class Game {
     if (e && (e.cls === 'monster' || e.dead)) return;
     this.selected = e;
     this.mode = { type: 'move' };
-    if (e) playSfx('s_unit_vehicle_2');
+    if (e) {
+      const k = e.def.kind;
+      playSfxEvent(k === 'animal' ? 'unit_animal' : k === 'robot' ? 'unit_robot' : 'unit_vehicle');
+    }
     this.ev.selectionChanged();
   }
 
-  setMode(mode: ActionMode): void {
+  setMode(mode: ActionMode, sfx: SfxEvent = 'click_button'): void {
     this.mode = mode;
-    playSfx('s_button_click_2');
+    playSfxEvent(sfx);
     this.ev.selectionChanged();
   }
 
@@ -123,6 +126,7 @@ export class Game {
     if (!path) { this.ev.toast('갈 수 없는 곳입니다'); return; }
     e.path = path;
     e.attackTarget = null;
+    playSfxEvent('move');
   }
 
   private approach(e: Entity, x: number, y: number): void {
@@ -159,7 +163,7 @@ export class Game {
     }
     for (const [c, n] of Object.entries(pile.bricks)) if (!n) delete pile.bricks[c as keyof Bricks];
     if (brickTotal(pile.bricks) === 0) lv.piles.delete(lv.key(x, y));
-    playSfx('s_pickup_plan_1');
+    playSfxEvent('pick_up');
     this.ev.selectionChanged();
   }
 
@@ -169,7 +173,7 @@ export class Game {
     if (!t || t === 'mountain' || t === 'tree' || t === 'volcano') { this.ev.toast('여기엔 내려놓을 수 없습니다'); return; }
     this.level.addBricks(x, y, e.carrying);
     e.carrying = {};
-    playSfx('s_misc_4');
+    playSfxEvent('drop');
     this.ev.selectionChanged();
   }
 
@@ -182,7 +186,7 @@ export class Game {
     if (!this.spend(e, 'dig')) return;
     lv.terrain[y][x] = 'water';
     e.hasDirt = true;
-    playSfx('s_dig_ground_1');
+    playSfxEvent('dig_ground');
     this.ev.selectionChanged();
   }
 
@@ -195,7 +199,7 @@ export class Game {
     if (!this.spend(e, 'fill')) return;
     lv.terrain[y][x] = 'normal';
     e.hasDirt = false;
-    playSfx('s_fill_ground_2');
+    playSfxEvent('fill_ground');
     this.ev.selectionChanged();
   }
 
@@ -207,7 +211,7 @@ export class Game {
     if (!this.spend(e, 'uproot')) return;
     lv.terrain[y][x] = 'normal';
     e.hasTree = true;
-    playSfx('s_dig_ground_1');
+    playSfxEvent('dig_tree');
     this.ev.selectionChanged();
   }
 
@@ -220,7 +224,7 @@ export class Game {
     if (!this.spend(e, 'plant')) return;
     lv.terrain[y][x] = 'tree';
     e.hasTree = false;
-    playSfx('s_fill_ground_2');
+    playSfxEvent('plant_tree');
     this.ev.selectionChanged();
   }
 
@@ -229,7 +233,7 @@ export class Game {
     lv.addBricks(e.x, e.y, e.def.recipe);
     e.dead = true;
     if (this.selected?.id === e.id) this.select(null);
-    playSfx('s_disassemble_2');
+    playSfxEvent('disassembly');
     this.ev.selectionChanged();
   }
 
@@ -293,7 +297,7 @@ export class Game {
     if (plan.uses <= 0) lv.planInv.splice(planIdx, 1);
     const cls = UNITKIND(plan.unit);
     const e = lv.spawn(cls, plan.unit, x, y);
-    playSfx('s_build_2');
+    playSfxEvent('assembly');
     this.ev.plansChanged();
     this.ev.selectionChanged();
     if (e) this.checkGoals(e);
@@ -311,11 +315,11 @@ export class Game {
       g.done = true;
       if (g.bonus) {
         this.bonusDone = true;
-        playSfx('s_goal_bonus_2');
+        playSfxEvent('bonus_goal');
         this.ev.bonusGoal();
       } else {
         this.goalDone = true;
-        playSfx('s_goal_mission_4');
+        playSfxEvent('mission_goal');
         this.ev.missionGoal();
       }
       this.ev.goalsChanged();
@@ -332,7 +336,7 @@ export class Game {
         lv.mapPlans.delete(k);
         const inv = lv.planInv.find(p => p.unit === plan.unit);
         if (inv) inv.uses += plan.uses; else lv.planInv.push({ unit: plan.unit, uses: plan.uses });
-        playSfx('s_pickup_plan_1');
+        playSfxEvent('pick_up_plan');
         this.ev.toast(`${plan.unit} 플랜 획득!`);
         this.ev.plansChanged();
       }
@@ -463,7 +467,7 @@ export class Game {
     const [lo, hi] = atk.damage;
     const dmg = (lo + Math.random() * (hi - lo)) * target.def.shield;
     target.hp -= dmg;
-    playSfx(e.cls === 'monster' ? 's_monster_attack_4' : 's_damage_1');
+    playSfxEvent(e.cls === 'monster' ? 'monster_attack' : 'damage');
     if (target.hp <= 0) this.destroy(target);
   }
 
@@ -473,7 +477,7 @@ export class Game {
     this.level.addBricks(e.x, e.y, e.def.recipe);
     if (e.cls !== 'monster') this.ev.unitLost(e.def.name || e.type);
     if (this.selected?.id === e.id) this.select(null);
-    playSfx('s_disassemble_2');
+    playSfxEvent('disassembly');
   }
 }
 

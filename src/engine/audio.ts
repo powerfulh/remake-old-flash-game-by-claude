@@ -171,6 +171,48 @@ export function playStageBgm(): void {
   playBgmSetInternal(bgmSet(prefix));
 }
 
+// ---------- SFX 이벤트 매핑 ----------
+// 원본 sfx_* 캐스트 멤버 정의를 그대로 옮긴 이벤트→사운드 테이블.
+// 예: sfx_unit_animal = "random / s_unit_animal_1"
+// 주의: mission_goal ↔ bonus_goal 사운드가 원본 데이터에서 실제로 엇갈려 있음
+//   (sfx_game_mission_goal → s_goal_bonus_2, sfx_game_bonus_goal → s_goal_mission_4).
+export type SfxEvent =
+  | 'unit_vehicle' | 'unit_animal' | 'unit_robot'
+  | 'assembly' | 'disassembly' | 'move'
+  | 'pick_up' | 'drop' | 'pick_up_plan'
+  | 'monster_attack' | 'damage'
+  | 'mission_goal' | 'bonus_goal'
+  | 'dig_tree' | 'plant_tree' | 'dig_ground' | 'fill_ground'
+  | 'click_mission' | 'click_plan' | 'click_button' | 'rollover';
+
+const SFX_EVENTS: Record<SfxEvent, string> = {
+  unit_vehicle: 's_unit_vehicle_2',
+  unit_animal: 's_unit_animal_1',
+  unit_robot: 's_unit_robot_2',
+  assembly: 's_build_2',
+  disassembly: 's_disassemble_2',
+  move: 's_button_click_2',
+  pick_up: 's_pickup_plan_1',
+  drop: 's_pickup_plan_1',
+  pick_up_plan: 's_pickup_plan_1',
+  monster_attack: 's_monster_attack_4',
+  damage: 's_damage_1',
+  mission_goal: 's_goal_bonus_2',
+  bonus_goal: 's_goal_mission_4',
+  dig_tree: 's_rollover_2',
+  plant_tree: 's_misc_4',
+  dig_ground: 's_dig_ground_1',
+  fill_ground: 's_fill_ground_2',
+  click_mission: 's_button_click_2',
+  click_plan: 's_plan_click_2',
+  click_button: 's_pickup_plan_1',
+  rollover: 's_rollover_1',
+};
+
+export function playSfxEvent(ev: SfxEvent): void {
+  playSfx(SFX_EVENTS[ev]);
+}
+
 export function playSfx(name: string): void {
   if (!audioState.sfx || !SFX.includes(name)) return;
   loadBuffer(name).then(buf => {
