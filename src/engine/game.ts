@@ -37,6 +37,8 @@ export class Game {
   time = 0;
   /** 커서가 올라간 셀 (조립 범위 표시용) */
   hover: { x: number; y: number } | null = null;
+  /** 진행 중인 이펙트 (조립/분해 구름) */
+  effects: { x: number; y: number; kind: 'build' | 'takeApart'; t: number }[] = [];
   private ev: GameEvents;
 
   constructor(def: LevelDef, ev: GameEvents) {
@@ -273,6 +275,7 @@ export class Game {
     const lv = this.level;
     lv.addBricks(e.x, e.y, e.def.recipe);
     e.dead = true;
+    this.effects.push({ x: e.x, y: e.y, kind: 'takeApart', t: 0 });
     if (this.selected?.id === e.id) this.select(null);
     playSfxEvent('disassembly');
     this.ev.selectionChanged();
@@ -338,6 +341,7 @@ export class Game {
     if (plan.uses <= 0) lv.planInv.splice(planIdx, 1);
     const cls = UNITKIND(plan.unit);
     const e = lv.spawn(cls, plan.unit, x, y);
+    this.effects.push({ x, y, kind: 'build', t: 0 });
     playSfxEvent('assembly');
     this.ev.plansChanged();
     this.ev.selectionChanged();
@@ -396,6 +400,8 @@ export class Game {
   tick(dt: number): void {
     if (this.paused) return;
     this.time += dt;
+    for (const fx of this.effects) fx.t += dt;
+    this.effects = this.effects.filter(fx => fx.t < EFFECT_DURATION[fx.kind]);
     for (const e of this.level.entities) {
       if (e.dead) continue;
       if (e.cls === 'monster') this.tickMonster(e, dt);
@@ -516,6 +522,7 @@ export class Game {
     e.dead = true;
     // 파괴 시 레시피 브릭 드랍 (원본: 몬스터가 유닛을 분해)
     this.level.addBricks(e.x, e.y, e.def.recipe);
+    this.effects.push({ x: e.x, y: e.y, kind: 'takeApart', t: 0 });
     if (e.cls !== 'monster') this.ev.unitLost(e.def.name || e.type);
     if (this.selected?.id === e.id) this.select(null);
     playSfxEvent('disassembly');
@@ -525,6 +532,9 @@ export class Game {
 function UNITKIND(type: string): 'unit' | 'building' {
   return UNIT_DATA.buildings[type] ? 'building' : 'unit';
 }
+
+/** 이펙트 재생 시간(초) — 원본 프레임 수 기준 (build 2프레임, takeApart 3프레임) */
+export const EFFECT_DURATION = { build: 0.5, takeApart: 0.66 } as const;
 
 export type AdjacentAction = 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant';
 

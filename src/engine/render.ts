@@ -1,8 +1,9 @@
 import { CELL_CX, CELL_CY, SHEAR, STEP_X, STEP_Y } from './const';
-import { drawSprite, hasSprite } from './assets';
+import { drawSprite, drawSpriteCentered, hasSprite } from './assets';
 import {
   drawActionArrow, drawActionMiddle, drawActionNegative, drawBonusStar, drawGoalMark,
 } from './customSprites';
+import { EFFECT_DURATION } from './game';
 import type { Game } from './game';
 import type { Entity } from './level';
 import { brickTotal } from './level';
@@ -175,6 +176,16 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
       }
     }
   }
+  // 조립/분해 구름 이펙트 (원본 build_cloud / take_apart_cloud 프레임 애니메이션)
+  for (const fx of game.effects) {
+    const [ax, ay] = cellAnchor(fx.x, fx.y);
+    const progress = fx.t / EFFECT_DURATION[fx.kind];
+    const frame = fx.kind === 'build'
+      ? `build_cloud${Math.min(2, Math.floor(progress * 2) + 1)}`
+      : `take_apart_cloud${Math.min(3, Math.floor(progress * 3) + 1)}`;
+    drawSpriteCentered(ctx, frame, ax + CELL_CX, ay + CELL_CY - 8);
+  }
+
   drawActionArrows(ctx, game, time);
 
   if (game.hover) {

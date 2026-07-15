@@ -142,6 +142,20 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "regX": 1,
   "regY": -21
  },
+ "build_cloud2": {
+  "file": "build_cloud2.png",
+  "w": 86,
+  "h": 74,
+  "regX": 30,
+  "regY": 24
+ },
+ "build_cloud1": {
+  "file": "build_cloud1.png",
+  "w": 84,
+  "h": 65,
+  "regX": 27,
+  "regY": 15
+ },
  "resource.energy_dead": {
   "file": "resource.energy_dead.png",
   "w": 17,
@@ -162,6 +176,27 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "h": 17,
   "regX": 8,
   "regY": 8
+ },
+ "take_apart_cloud2": {
+  "file": "take_apart_cloud2.png",
+  "w": 84,
+  "h": 65,
+  "regX": 22,
+  "regY": 23
+ },
+ "take_apart_cloud3": {
+  "file": "take_apart_cloud3.png",
+  "w": 80,
+  "h": 69,
+  "regX": 24,
+  "regY": 21
+ },
+ "take_apart_cloud1": {
+  "file": "take_apart_cloud1.png",
+  "w": 32,
+  "h": 31,
+  "regX": -1,
+  "regY": -2
  },
  "terrain.billboard": {
   "file": "terrain.billboard.png",
