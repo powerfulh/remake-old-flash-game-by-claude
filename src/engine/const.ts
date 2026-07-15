@@ -1,19 +1,17 @@
 // 타일 지오메트리 — 원본 스프라이트 픽셀 분석으로 도출한 사선(oblique) 투영.
-// 타일 윗면은 51×54 평행사변형이고 행이 내려갈 때마다 왼쪽으로 24px 밀린다.
+// terrain.normal 실측: 윗면(순수 초록)은 0~49행 = 높이 50px, 50~53행은 어두운 립(lip),
+// 54행부터 앞면. 좌측 경사는 정확히 0.5px/행이므로 SHEAR = STEP_Y / 2 여야
+// 행 사이 갭/어긋남 없이 맞물린다. (립 4px 는 다음 행 타일이 덮는다)
 // 셀 (x,y) 의 앵커(윗면 좌상단 모서리) 화면 좌표:
 //   px = x * STEP_X - y * SHEAR
 //   py = y * STEP_Y
 export const STEP_X = 51;
-export const STEP_Y = 54;
-export const SHEAR = 24;
+export const STEP_Y = 50;
+export const SHEAR = 25;
 
-/** 셀 앵커 → 윗면 중심 오프셋 */
-export const CENTER_X = (STEP_X - SHEAR) / 2 + 0; // 평행사변형 중심 x = (51 - 24) / 2 + ... 보정
-export const CENTER_Y = STEP_Y / 2;
-
-// 실측: 윗면 꼭짓점 (24,0),(74,0),(50,53),(0,53) 기준 중심 = (37,26.5), 앵커 (24,0) 상대 (13,26.5)
+// 윗면 꼭짓점 (0,0),(51,0),(26,50),(-25,50) 기준 중심 = (13,25)
 export const CELL_CX = 13;
-export const CELL_CY = 27;
+export const CELL_CY = 25;
 
 export const CONFIG = {
   /** FILL 은 DIG 로 퍼 온 흙이 있어야 가능 (원본 동작 추정 — 검토 포인트) */
