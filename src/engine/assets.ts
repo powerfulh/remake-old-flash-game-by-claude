@@ -4,8 +4,10 @@ import type { SpriteInfo } from '../data/types';
 const images = new Map<string, CanvasImageSource>();
 
 /**
- * Director "Matte" 잉크 재현: 이미지 가장자리에서 연결된 흰색 영역만 투명 처리.
- * (내부의 흰색 픽셀 — 별의 흰 면 등 — 은 유지)
+ * Director "Matte" 잉크 재현: 이미지 가장자리에서 연결된 배경색 영역만 투명 처리.
+ * 배경색은 네 모서리 픽셀에서 자동 감지한다 — 대부분 흰색이지만
+ * 골 마커(goal.bonus, goal.goal 등)처럼 검정 배경인 스프라이트도 있다.
+ * (배경과 연결되지 않은 내부 픽셀 — 별의 흰 면 등 — 은 유지)
  */
 function applyMatte(img: HTMLImageElement): CanvasImageSource {
   const w = img.naturalWidth, h = img.naturalHeight;
@@ -16,7 +18,19 @@ function applyMatte(img: HTMLImageElement): CanvasImageSource {
   cx.drawImage(img, 0, 0);
   const data = cx.getImageData(0, 0, w, h);
   const px = data.data;
-  const isWhite = (i: number) => px[i] >= 248 && px[i + 1] >= 248 && px[i + 2] >= 248;
+
+  // 네 모서리 중 3개 이상이 같은 색이면 그 색을 배경으로 판정, 아니면 흰색 기본
+  const corner = (p: number) => [px[p * 4], px[p * 4 + 1], px[p * 4 + 2]] as const;
+  const corners = [corner(0), corner(w - 1), corner((h - 1) * w), corner(h * w - 1)];
+  const same = (a: readonly number[], b: readonly number[]) =>
+    Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]) <= 24;
+  let bg: readonly number[] = [255, 255, 255];
+  for (const c of corners) {
+    if (corners.filter(o => same(c, o)).length >= 3) { bg = c; break; }
+  }
+  const isBg = (i: number) =>
+    Math.abs(px[i] - bg[0]) + Math.abs(px[i + 1] - bg[1]) + Math.abs(px[i + 2] - bg[2]) <= 24;
+
   const visited = new Uint8Array(w * h);
   const stack: number[] = [];
   for (let x = 0; x < w; x++) { stack.push(x, x + (h - 1) * w); }
@@ -25,7 +39,7 @@ function applyMatte(img: HTMLImageElement): CanvasImageSource {
     const p = stack.pop()!;
     if (visited[p]) continue;
     visited[p] = 1;
-    if (!isWhite(p * 4)) continue;
+    if (!isBg(p * 4)) continue;
     px[p * 4 + 3] = 0;
     const x = p % w, y = (p / w) | 0;
     if (x > 0) stack.push(p - 1);
