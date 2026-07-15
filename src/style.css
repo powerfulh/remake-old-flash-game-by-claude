@@ -69,6 +69,14 @@ html, body { height: 100%; overflow: hidden; background: #1a2430; color: #eee; f
 #banner .title { font-size: 24px; font-weight: bold; color: #ffd54f; margin-bottom: 10px; }
 #banner .buttons { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
 
+#tile-tooltip {
+  position: fixed; display: none; max-width: 260px;
+  background: rgba(8, 18, 28, .93); border: 1px solid #ffb300; border-radius: 8px;
+  padding: 7px 11px; font-size: 12.5px; line-height: 1.55; color: #eee;
+  pointer-events: none; z-index: 20; white-space: nowrap;
+}
+#tile-tooltip b { color: #ffd54f; }
+
 #toast {
   position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
   background: rgba(0, 0, 0, .75); padding: 6px 16px; border-radius: 16px; font-size: 13px;

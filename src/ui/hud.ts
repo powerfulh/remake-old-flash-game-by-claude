@@ -1,5 +1,9 @@
 import type { Game, ActionMode } from '../engine/game';
-import { brickTotal } from '../engine/level';
+import { brickTotal, unitDefOf } from '../engine/level';
+
+const BRICK_KO: Record<string, string> = {
+  red: '빨강', yellow: '노랑', blue: '파랑', green: '초록', wheel: '바퀴', energy: '에너지',
+};
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -102,6 +106,46 @@ export class Hud {
       };
       wrap.appendChild(b);
     });
+  }
+
+  /** 호버 타일 툴팁: 골 → 도달 유닛, 자원 더미 → 구성 */
+  updateTileTooltip(cell: { x: number; y: number } | null, mouseX: number, mouseY: number): void {
+    let el = document.getElementById('tile-tooltip');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'tile-tooltip';
+      $('hud').appendChild(el);
+    }
+    const lines: string[] = [];
+    if (cell) {
+      const lv = this.game.level;
+      for (const g of lv.goals) {
+        if (g.x !== cell.x || g.y !== cell.y || g.done) continue;
+        const label = g.bonus ? '⭐ 보너스 골' : '❗ 미션 골';
+        const who = g.target === 'anything'
+          ? '아무 유닛이나 도달'
+          : `${unitDefOf(g.target)?.name ?? g.target} 도달 필요`;
+        lines.push(`<b>${label}</b> — ${who}`);
+      }
+      const pile = lv.piles.get(lv.key(cell.x, cell.y));
+      if (pile) {
+        const parts = Object.entries(pile.bricks)
+          .filter(([, n]) => (n ?? 0) > 0)
+          .map(([c, n]) => `${BRICK_KO[c] ?? c}×${n}`);
+        if (parts.length) lines.push(`<b>🧱 브릭 더미</b> — ${parts.join(', ')}`);
+      }
+    }
+    if (!lines.length) { el.style.display = 'none'; return; }
+    el.innerHTML = lines.join('<br>');
+    el.style.display = 'block';
+    // 화면 오른쪽/아래 경계에서 넘치지 않게 배치
+    const pad = 14;
+    const w = el.offsetWidth, h = el.offsetHeight;
+    let x = mouseX + pad, y = mouseY + pad;
+    if (x + w > window.innerWidth - 4) x = mouseX - w - pad;
+    if (y + h > window.innerHeight - 4) y = mouseY - h - pad;
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
   }
 
   toast(msg: string): void {

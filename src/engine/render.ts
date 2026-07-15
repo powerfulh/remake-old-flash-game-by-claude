@@ -173,16 +173,38 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
       }
     }
   }
-  // 조립 모드: 커서 중심 3×3 범위 오버레이 (원본 UX 재현)
-  if (game.mode.type === 'build' && game.hover) {
+  if (game.hover) {
     const { x: hx, y: hy } = game.hover;
     if (hx >= 0 && hy >= 0 && hx < lv.w && hy < lv.h) {
-      const plan = lv.planInv[game.mode.planIdx];
-      const ok = plan ? game.buildCheck(plan.unit, hx, hy).ok : false;
-      drawBuildRange(ctx, hx, hy, ok, time);
+      if (game.mode.type === 'build') {
+        // 조립 모드: 커서 중심 3×3 범위 오버레이 (원본 UX 재현)
+        const plan = lv.planInv[game.mode.planIdx];
+        const ok = plan ? game.buildCheck(plan.unit, hx, hy).ok : false;
+        drawBuildRange(ctx, hx, hy, ok, time);
+      } else {
+        drawHoverCell(ctx, hx, hy, time);
+      }
     }
   }
 
+  ctx.restore();
+}
+
+/** 호버 중인 타일 표시 — 셀 윗면 평행사변형 점선 테두리 */
+function drawHoverCell(ctx: CanvasRenderingContext2D, cx: number, cy: number, time: number): void {
+  const [ax, ay] = cellAnchor(cx, cy);
+  ctx.save();
+  ctx.lineWidth = 2;
+  ctx.setLineDash([7, 5]);
+  ctx.lineDashOffset = -time * 18;
+  ctx.strokeStyle = 'rgba(255,255,255,.85)';
+  ctx.beginPath();
+  ctx.moveTo(ax, ay);
+  ctx.lineTo(ax + STEP_X, ay);
+  ctx.lineTo(ax + STEP_X - SHEAR, ay + STEP_Y);
+  ctx.lineTo(ax - SHEAR, ay + STEP_Y);
+  ctx.closePath();
+  ctx.stroke();
   ctx.restore();
 }
 
