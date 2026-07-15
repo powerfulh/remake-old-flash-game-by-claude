@@ -153,7 +153,14 @@ function startMission(def: LevelDef): void {
   canvas.oncontextmenu = e => e.preventDefault();
 
   const keys = new Set<string>();
-  window.onkeydown = e => keys.add(e.key);
+  window.onkeydown = e => {
+    keys.add(e.key);
+    // 단축키 E: 선택된 유닛 분해하기
+    if ((e.key === 'e' || e.key === 'E') && !e.repeat) {
+      const sel = g.selected;
+      if (sel && sel.cls === 'unit') g.takeApart(sel);
+    }
+  };
   window.onkeyup = e => keys.delete(e.key);
 
   // ----- 루프 -----
