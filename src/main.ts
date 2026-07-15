@@ -2,7 +2,7 @@ import { LEVELS } from './data/generated/levels';
 import { SPRITE_MANIFEST } from './data/generated/sprites';
 import type { LevelDef } from './data/types';
 import { loadSprites } from './engine/assets';
-import { playBgm, playWorldBgm, preloadAudio, stopBgm } from './engine/audio';
+import { playMenuBgm, playWorldBgm, preloadAudio, stopBgm } from './engine/audio';
 import { Game } from './engine/game';
 import { Camera, pickCell, render } from './engine/render';
 import { Hud } from './ui/hud';
@@ -37,7 +37,7 @@ let currentWorld = 1;
 
 function showMenu(): void {
   stopBgm();
-  playBgm('m_intro_1');
+  playMenuBgm();
   $('game').classList.add('hidden');
   const menu = $('menu');
   menu.classList.remove('hidden');
