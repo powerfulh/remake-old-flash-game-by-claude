@@ -6,4 +6,5 @@ export default defineConfig({
     target: 'es2022',
     outDir: 'docs'
   },
+  base: '/remake-old-flash-game-by-claude'
 });
