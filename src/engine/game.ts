@@ -533,8 +533,8 @@ function UNITKIND(type: string): 'unit' | 'building' {
   return UNIT_DATA.buildings[type] ? 'building' : 'unit';
 }
 
-/** 이펙트 재생 시간(초) — 원본 프레임 수 기준 (build 2프레임, takeApart 3프레임) */
-export const EFFECT_DURATION = { build: 0.5, takeApart: 0.66 } as const;
+/** 이펙트 재생 시간(초) — build 2프레임, takeApart 3프레임 */
+export const EFFECT_DURATION = { build: 0.28, takeApart: 0.36 } as const;
 
 export type AdjacentAction = 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant';
 
