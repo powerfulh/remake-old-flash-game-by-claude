@@ -5,6 +5,9 @@ import { brickTotal, unitDefOf } from '../engine/level';
 const BRICK_KO: Record<string, string> = {
   red: '빨강', yellow: '노랑', blue: '파랑', green: '초록', wheel: '바퀴', energy: '에너지',
 };
+const BRICK_COLOR: Record<string, string> = {
+  red: '#e53935', yellow: '#fdd835', blue: '#1e88e5', green: '#43a047', wheel: '#9e9e9e', energy: '#aeea00',
+};
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -112,6 +115,23 @@ export class Hud {
       b.onmouseenter = () => playSfxEvent('rollover');
       wrap.appendChild(b);
     });
+    // 조립 모드일 때 선택된 플랜의 필요 재료 표시
+    const mode = this.game.mode;
+    if (mode.type === 'build') {
+      const plan = inv[mode.planIdx];
+      const def = plan ? unitDefOf(plan.unit) : undefined;
+      if (def) {
+        const recipe = document.createElement('div');
+        recipe.id = 'plan-recipe';
+        recipe.innerHTML = '<span class="label">필요 재료:</span>' +
+          Object.entries(def.recipe)
+            .filter(([, n]) => (n ?? 0) > 0)
+            .map(([c, n]) =>
+              `<span class="chip"><i style="background:${BRICK_COLOR[c] ?? '#999'}"></i>${BRICK_KO[c] ?? c}×${n}</span>`)
+            .join('');
+        wrap.appendChild(recipe);
+      }
+    }
   }
 
   /** 호버 타일 툴팁: 골 → 도달 유닛, 자원 더미 → 구성 */
