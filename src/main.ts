@@ -4,6 +4,7 @@ import type { LevelDef } from './data/types';
 import { loadSprites } from './engine/assets';
 import { playMenuBgm, playSfxEvent, playStageBgm, preloadAudio, stopBgm } from './engine/audio';
 import { Game } from './engine/game';
+import { brickTotal } from './engine/level';
 import { Camera, pickCell, render } from './engine/render';
 import { Hud } from './ui/hud';
 
@@ -159,6 +160,14 @@ function startMission(def: LevelDef): void {
     if ((e.key === 'e' || e.key === 'E') && !e.repeat) {
       const sel = g.selected;
       if (sel && sel.cls === 'unit') g.takeApart(sel);
+    }
+    // 단축키 Q: 브릭 집기(빈 손) / 내려놓기(운반 중) 토글
+    if ((e.key === 'q' || e.key === 'Q') && !e.repeat) {
+      const sel = g.selected;
+      if (sel && sel.cls === 'unit' && sel.def.carries > 0) {
+        const action = brickTotal(sel.carrying) > 0 ? 'drop' : 'pickup';
+        g.setMode(g.mode.type === action ? { type: 'move' } : { type: action });
+      }
     }
   };
   window.onkeyup = e => keys.delete(e.key);
