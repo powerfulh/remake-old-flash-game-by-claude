@@ -1,5 +1,5 @@
 import { CELL_CX, CELL_CY, SHEAR, STEP_X, STEP_Y } from './const';
-import { drawSprite, hasSprite } from './assets';
+import { drawSprite, drawSpriteCentered, hasSprite } from './assets';
 import { drawBonusStar, drawGoalMark } from './customSprites';
 import type { Game } from './game';
 import type { Entity } from './level';
@@ -173,6 +173,8 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
       }
     }
   }
+  drawActionArrows(ctx, game, time);
+
   if (game.hover) {
     const { x: hx, y: hy } = game.hover;
     if (hx >= 0 && hy >= 0 && hx < lv.w && hy < lv.h) {
@@ -188,6 +190,40 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
   }
 
   ctx.restore();
+}
+
+const ADJACENT_ACTIONS = new Set(['pickup', 'drop', 'dig', 'fill', 'uproot', 'plant']);
+const ARROW_DIRS = [
+  { dx: 0, dy: -1, sprite: 'action_arrow_up' },
+  { dx: 0, dy: 1, sprite: 'action_arrow_down' },
+  { dx: -1, dy: 0, sprite: 'action_arrow_left' },
+  { dx: 1, dy: 0, sprite: 'action_arrow_right' },
+];
+
+/**
+ * 능력 사용 방향 표시 (원본 action_arrow_* 스프라이트):
+ * 인접 대상 액션 모드일 때 유닛 사방에 화살표 표시 —
+ * 실행 가능한 방향은 화살표, 불가능한 방향은 negative 스프라이트.
+ * 유닛 발밑 칸에서도 가능하면 middle 마커 표시.
+ */
+function drawActionArrows(ctx: CanvasRenderingContext2D, game: Game, time: number): void {
+  const sel = game.selected;
+  const mode = game.mode.type;
+  if (!sel || !ADJACENT_ACTIONS.has(mode)) return;
+  const action = mode as 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant';
+  const lv = game.level;
+  const bob = Math.sin(time * 5) * 2;
+  for (const { dx, dy, sprite } of ARROW_DIRS) {
+    const x = sel.x + dx, y = sel.y + dy;
+    if (x < 0 || y < 0 || x >= lv.w || y >= lv.h) continue;
+    const [ax, ay] = cellAnchor(x, y);
+    const ok = game.canActAt(sel, action, x, y);
+    drawSpriteCentered(ctx, ok ? sprite : 'action_arrow_negative', ax + CELL_CX, ay + CELL_CY + (ok ? bob : 0));
+  }
+  if (game.canActAt(sel, action, sel.x, sel.y)) {
+    const [ax, ay] = cellAnchor(sel.x, sel.y);
+    drawSpriteCentered(ctx, 'action_arrow_middle', ax + CELL_CX, ay + CELL_CY + 14 + bob);
+  }
 }
 
 /** 호버 중인 타일 표시 — 셀 윗면 평행사변형 점선 테두리 */

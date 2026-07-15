@@ -139,6 +139,35 @@ export class Game {
 
   // ---------- 액션 구현 ----------
 
+  /**
+   * 인접 액션이 해당 칸에서 실제로 실행 가능한지 판정 (부작용/토스트 없음).
+   * 방향 화살표 표시와 do* 실행 전 검사에 공용.
+   */
+  canActAt(e: Entity, action: 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant', x: number, y: number): boolean {
+    const lv = this.level;
+    const t = lv.terrainAt(x, y);
+    if (!t) return false;
+    const k = lv.key(x, y);
+    switch (action) {
+      case 'pickup':
+        return !!lv.piles.get(k) && e.def.carries > 0 && brickTotal(e.carrying) < e.def.carries;
+      case 'drop':
+        return brickTotal(e.carrying) > 0 && t !== 'mountain' && t !== 'tree' && t !== 'volcano';
+      case 'dig':
+        return e.def.dig && !e.hasDirt && (t === 'normal' || t === 'swamp')
+          && !lv.entityAt(x, y) && !lv.piles.has(k) && e.energy >= (e.def.energy.dig ?? 1);
+      case 'fill':
+        return e.def.dig && (t === 'water' || t === 'whirl')
+          && (!CONFIG.fillRequiresDirt || e.hasDirt)
+          && !lv.entityAt(x, y) && e.energy >= (e.def.energy.fill ?? 1);
+      case 'uproot':
+        return e.def.transplant && !e.hasTree && t === 'tree' && e.energy >= (e.def.energy.uproot ?? 1);
+      case 'plant':
+        return e.def.transplant && e.hasTree && (t === 'normal' || t === 'swamp')
+          && !lv.entityAt(x, y) && !lv.piles.has(k) && e.energy >= (e.def.energy.plant ?? 1);
+    }
+  }
+
   private spend(e: Entity, action: string): boolean {
     const cost = e.def.energy[action] ?? e.def.energy.move ?? 1;
     if (e.energy < cost) { this.ev.toast('에너지 부족!'); return false; }
