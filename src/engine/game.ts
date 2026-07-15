@@ -58,8 +58,20 @@ export class Game {
   }
 
   setMode(mode: ActionMode, sfx: SfxEvent = 'click_button'): void {
-    this.mode = mode;
     playSfxEvent(sfx);
+    // 인접 액션은 사방+발밑이 전부 무효면 타일 선택을 생략하고 바로 안내
+    if (this.selected && isAdjacentAction(mode.type)) {
+      const e = this.selected;
+      const any = [[0, 0], [0, -1], [0, 1], [-1, 0], [1, 0]]
+        .some(([dx, dy]) => this.canActAt(e, mode.type as AdjacentAction, e.x + dx, e.y + dy));
+      if (!any) {
+        this.ev.toast(noTargetMessage(e, mode.type as AdjacentAction));
+        this.mode = { type: 'move' };
+        this.ev.selectionChanged();
+        return;
+      }
+    }
+    this.mode = mode;
     this.ev.selectionChanged();
   }
 
@@ -512,4 +524,26 @@ export class Game {
 
 function UNITKIND(type: string): 'unit' | 'building' {
   return UNIT_DATA.buildings[type] ? 'building' : 'unit';
+}
+
+export type AdjacentAction = 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant';
+
+function isAdjacentAction(t: string): t is AdjacentAction {
+  return t === 'pickup' || t === 'drop' || t === 'dig' || t === 'fill' || t === 'uproot' || t === 'plant';
+}
+
+/** 사용 가능한 칸이 하나도 없을 때의 원인별 안내 문구 */
+function noTargetMessage(e: Entity, action: AdjacentAction): string {
+  switch (action) {
+    case 'pickup': return '주변에 집을 수 있는 브릭 더미가 없습니다';
+    case 'drop': return '주변에 내려놓을 수 있는 칸이 없습니다';
+    case 'dig':
+      return e.hasDirt ? '이미 흙을 싣고 있습니다 — 먼저 FILL 하세요' : '주변에 팔 수 있는 땅이 없습니다';
+    case 'fill':
+      return e.hasDirt ? '주변에 메울 수 있는 물이 없습니다' : '먼저 DIG 로 흙을 퍼 와야 합니다';
+    case 'uproot':
+      return e.hasTree ? '이미 나무를 들고 있습니다 — 먼저 심으세요' : '주변에 뽑을 나무가 없습니다';
+    case 'plant':
+      return e.hasTree ? '주변에 심을 수 있는 칸이 없습니다' : '심을 나무가 없습니다 — 먼저 나무를 뽑으세요';
+  }
 }
