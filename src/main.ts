@@ -2,7 +2,7 @@ import { LEVELS } from './data/generated/levels';
 import { SPRITE_MANIFEST } from './data/generated/sprites';
 import type { LevelDef } from './data/types';
 import { loadSprites } from './engine/assets';
-import { playBgm, playWorldBgm, stopBgm } from './engine/audio';
+import { playBgm, playWorldBgm, preloadAudio, stopBgm } from './engine/audio';
 import { Game } from './engine/game';
 import { Camera, pickCell, render } from './engine/render';
 import { Hud } from './ui/hud';
@@ -189,6 +189,7 @@ async function boot(): Promise<void> {
   const menu = $('menu');
   menu.innerHTML = '<h1>LEGO WorldBuilder Remake</h1><p>애셋 로딩 중…</p>';
   await loadSprites(Object.keys(SPRITE_MANIFEST));
+  preloadAudio();
   showMenu();
 }
 boot();
