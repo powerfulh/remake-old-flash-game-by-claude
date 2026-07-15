@@ -49,7 +49,7 @@ function ensureCtx(): AudioContext {
 function loadBuffer(name: string): Promise<AudioBuffer | null> {
   let p = buffers.get(name);
   if (!p) {
-    p = fetch(`/assets/audio/${name}.mp3`)
+    p = fetch(`${import.meta.env.BASE_URL}assets/audio/${name}.mp3`)
       .then(r => r.arrayBuffer())
       .then(ab => ensureCtx().decodeAudioData(ab))
       .catch(() => null);

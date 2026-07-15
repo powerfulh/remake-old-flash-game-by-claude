@@ -59,7 +59,7 @@ export async function loadSprites(names: Iterable<string>): Promise<void> {
     const info = SPRITE_MANIFEST[name];
     if (!info) continue;
     const img = new Image();
-    img.src = `/assets/sprites/${info.file}`;
+    img.src = `${import.meta.env.BASE_URL}assets/sprites/${info.file}`;
     jobs.push(new Promise(res => {
       img.onload = () => { images.set(name, applyMatte(img)); res(); };
       img.onerror = () => res();
