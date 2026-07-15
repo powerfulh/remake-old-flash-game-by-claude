@@ -24,6 +24,7 @@ src/engine/
   path.ts                 # A* (4방향, 늪 페널티)
   game.ts                 # 시뮬레이션 (이동/액션/조립/전투/골 판정)
   render.ts               # 캔버스 렌더 (페인터 순서, 스프라이트 상태 폴백)
+  customSprites.ts        # ⚠️ 원작 애셋이 아닌 새로 그린 벡터 스프라이트 (골 마커 등)
 src/ui/hud.ts             # DOM HUD (유닛 정보/액션/플랜/배너)
 src/main.ts               # 메뉴, 진행 저장(localStorage), 게임 루프
 ```

@@ -1,5 +1,6 @@
 import { CELL_CX, CELL_CY, SHEAR, STEP_X, STEP_Y } from './const';
 import { drawSprite, hasSprite } from './assets';
+import { drawBonusStar, drawGoalMark } from './customSprites';
 import type { Game } from './game';
 import type { Entity } from './level';
 import { brickTotal } from './level';
@@ -119,7 +120,8 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
       const onWater = WATERY.has(lv.terrain[g.y][g.x]);
       drawSprite(ctx, onWater ? 'goal.shadow.water' : 'goal.shadow.normal', cx, cy);
       const bob = Math.sin(time * 3 + g.x) * 4;
-      drawSprite(ctx, g.bonus ? 'goal.bonus' : 'goal.goal', cx, cy + bob - 8);
+      if (g.bonus) drawBonusStar(ctx, cx, cy + bob - 22);
+      else drawGoalMark(ctx, cx, cy + bob - 10);
     }
     for (const [k, plan] of lv.mapPlans) {
       const [px, py] = k.split(',').map(Number);
