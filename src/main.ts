@@ -2,7 +2,7 @@ import { LEVELS } from './data/generated/levels';
 import { SPRITE_MANIFEST } from './data/generated/sprites';
 import type { LevelDef } from './data/types';
 import { loadSprites } from './engine/assets';
-import { playMenuBgm, playWorldBgm, preloadAudio, stopBgm } from './engine/audio';
+import { playMenuBgm, playStageBgm, preloadAudio, stopBgm } from './engine/audio';
 import { Game } from './engine/game';
 import { Camera, pickCell, render } from './engine/render';
 import { Hud } from './ui/hud';
@@ -85,7 +85,7 @@ let rafId = 0;
 function startMission(def: LevelDef): void {
   $('menu').classList.add('hidden');
   $('game').classList.remove('hidden');
-  playWorldBgm(def.world);
+  playStageBgm();
 
   const canvas = $('canvas') as unknown as HTMLCanvasElement;
   const ctx = canvas.getContext('2d')!;

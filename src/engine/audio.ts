@@ -159,11 +159,14 @@ export function playMenuBgm(): void {
   playBgmSetInternal(bgmSet('m_intro'));
 }
 
-/** 스테이지 BGM: 월드별 곡 세트 하나를 묶어서 재생 */
-export function playWorldBgm(world: number): void {
-  const songs = ['m_game_6', 'm_game_8', 'm_game_a', 'm_game_i', 'm_game_6'];
-  const prefix = songs[(world - 1) % songs.length];
-  if (currentSetKey === prefix) return; // 같은 세트면 이어 재생
+/** 스테이지 BGM: 진입할 때마다 곡 세트를 랜덤으로 하나 골라 재생 */
+export function playStageBgm(): void {
+  // BGM 목록에서 m_game_{곡} 프리픽스를 동적으로 수집
+  const songs = [...new Set(
+    BGM.filter(n => n.startsWith('m_game_')).map(n => n.replace(/_\d+$/, '')),
+  )];
+  if (!songs.length) return;
+  const prefix = songs[Math.floor(Math.random() * songs.length)];
   currentSetKey = prefix;
   playBgmSetInternal(bgmSet(prefix));
 }
