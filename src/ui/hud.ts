@@ -72,6 +72,9 @@ export class Hud {
     const combat = COMBAT_STATS[e.type];
     // 연비: 칸당 이동 에너지 (몬스터는 이동 에너지 미소모라 제외)
     const moveCost = e.cls === 'unit' ? e.def.energy.move : undefined;
+    // 적재량: 항상 config carries 기준으로 표시.
+    // (원작 위키 텍스트는 dumptruck 누락, tugboat 5→10 오기 등 실제 값과 어긋나는 곳이 있음)
+    const capacity = e.def.carries > 0 ? `${e.def.carries} Bricks` : '';
     const wiki = desc ? `
       <div class="desc">${desc.text}</div>
       <div class="stats">
@@ -79,7 +82,7 @@ export class Hud {
         ${desc.speed ? `<div><span>속도</span>${desc.speed}</div>` : ''}
         ${moveCost != null ? `<div><span>연비</span>에너지 ${moveCost}/칸</div>` : ''}
         ${desc.actions ? `<div><span>능력</span>${desc.actions}</div>` : ''}
-        ${desc.capacity ? `<div><span>적재</span>${desc.capacity}</div>` : ''}
+        ${capacity ? `<div><span>적재</span>${capacity}</div>` : ''}
       </div>` : '';
     // 사거리: 전투 유닛은 공격 사거리, 몬스터는 근접(1) + 탐지 범위
     const range = e.def.attack
