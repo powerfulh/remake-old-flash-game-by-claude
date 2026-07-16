@@ -1,4 +1,5 @@
 import type { Game, ActionMode } from '../engine/game';
+import { COMBAT_STATS } from '../data/combatStats';
 import { UNIT_DESCRIPTIONS } from '../data/generated/descriptions';
 import { playSfxEvent } from '../engine/audio';
 import { brickTotal, unitDefOf } from '../engine/level';
@@ -9,12 +10,18 @@ const BRICK_KO: Record<string, string> = {
 const BRICK_COLOR: Record<string, string> = {
   red: '#e53935', yellow: '#fdd835', blue: '#1e88e5', green: '#43a047', wheel: '#9e9e9e', energy: '#aeea00',
 };
+/** TerrainId → 위키 표기와 같은 영문 라벨 (몬스터 패널용) */
+const TERRAIN_LABEL: Record<string, string> = {
+  normal: 'Normal', rocky: 'Rocky', water: 'Water', deep: 'Deep Water',
+  reef: 'Reefs', swamp: 'Swamp', whirl: 'Whirlpool',
+};
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 export interface HudCallbacks {
   onExit(): void;
   onEndMission(): void;
+  onRetry(): void;
 }
 
 export class Hud {
@@ -26,6 +33,9 @@ export class Hud {
     this.game = game;
     this.cb = cb;
     $('btn-menu').onclick = () => this.cb.onExit();
+    $('btn-retry').onclick = () => { playSfxEvent('click_button'); this.cb.onRetry(); };
+    $('btn-pause').onclick = () => this.togglePause();
+    this.updatePauseUi();
     this.refreshAll();
   }
 
@@ -64,23 +74,42 @@ export class Hud {
       : e.hasDirt ? '적재: 흙 1' : e.hasTree ? '적재: 나무 1' : '';
     // 원작 위키(wb_help_models / unit info 텍스트) 기반 유닛 정보 카드
     const desc = UNIT_DESCRIPTIONS[e.type];
+    const combat = COMBAT_STATS[e.type];
+    // 연비: 칸당 이동 에너지 (몬스터는 이동 에너지 미소모라 제외)
+    const moveCost = e.cls === 'unit' ? e.def.energy.move : undefined;
+    // 적재량: 항상 config carries 기준으로 표시.
+    // (원작 위키 텍스트는 dumptruck 누락, tugboat 5→10 오기 등 실제 값과 어긋나는 곳이 있음)
+    const capacity = e.def.carries > 0 ? `${e.def.carries} Bricks` : '';
     const wiki = desc ? `
       <div class="desc">${desc.text}</div>
       <div class="stats">
         ${desc.terrain ? `<div><span>지형</span>${desc.terrain}</div>` : ''}
         ${desc.speed ? `<div><span>속도</span>${desc.speed}</div>` : ''}
+        ${moveCost != null ? `<div><span>연비</span>에너지 ${moveCost}/칸</div>` : ''}
         ${desc.actions ? `<div><span>능력</span>${desc.actions}</div>` : ''}
-        ${desc.capacity ? `<div><span>적재</span>${desc.capacity}</div>` : ''}
+        ${capacity ? `<div><span>적재</span>${capacity}</div>` : ''}
       </div>` : '';
+    // 몬스터는 위키 카드가 없으므로 config terrain 으로 이동 가능 지형 표시
+    const monsterStats = !desc && e.cls === 'monster' && e.def.terrain.length
+      ? `<div class="stats"><div><span>지형</span>${e.def.terrain.map(t => TERRAIN_LABEL[t] ?? t).join(', ')}</div></div>`
+      : '';
+    // 사거리: 전투 유닛은 공격 사거리, 몬스터는 근접(1) + 탐지 범위
+    const range = e.def.attack
+      ? (e.cls === 'monster' ? `1 (탐지 ${e.def.attack.searchRange})` : `${e.def.attack.searchRange}`)
+      : null;
+    const combatRow = combat
+      ? `<div class="stats combat"><div><span>공격</span>${combat.attack}</div><div><span>방어</span>${combat.defense}</div>${range ? `<div><span>사거리</span>${range}</div>` : ''}</div>`
+      : e.type === 'boulder' ? '<div class="stats combat"><div>파괴 불가 장애물</div></div>' : '';
     info.innerHTML = `
-      <div class="name">${e.def.name || e.type}</div>
+      <div class="name">${e.cls === 'monster' ? '⚠️ ' : ''}${e.def.name || e.type}</div>
       ${wiki}
+      ${monsterStats}
+      ${combatRow}
       <div>에너지</div>
       <div class="energy-bar"><div class="${e.energy < 25 ? 'low' : ''}" style="width:${Math.max(0, e.energy)}%"></div></div>
-      ${e.hp < 100 ? `<div>내구도 ${Math.ceil(e.hp)}%</div>` : ''}
       ${carryTxt ? `<div class="carry">${carryTxt}</div>` : ''}
     `;
-    if (e.cls === 'building') return;
+    if (e.cls === 'building' || e.cls === 'monster') return; // 액션 버튼 없음
 
     const mode = this.game.mode;
     const btn = (label: string, m: ActionMode | null, extra?: () => void) => {
@@ -108,7 +137,7 @@ export class Hud {
     }
     if (e.def.push) btn('밀기 (SPACE)', { type: 'push' });
     if (e.def.attack) btn('공격 (X)', { type: 'attack' });
-    btn('분해하기 (R)', null, () => this.game.takeApart(e));
+    btn('분해하기 (T)', null, () => this.game.takeApart(e));
   }
 
   updatePlans(): void {
@@ -155,6 +184,24 @@ export class Hud {
     }
   }
 
+  togglePause(): void {
+    this.game.paused = !this.game.paused;
+    playSfxEvent('click_button');
+    this.updatePauseUi();
+  }
+
+  private updatePauseUi(): void {
+    $('btn-pause').textContent = this.game.paused ? '계속 (P)' : '일시정지 (P)';
+    let overlay = document.getElementById('pause-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'pause-overlay';
+      overlay.innerHTML = '<div>⏸ 일시정지</div>';
+      $('hud').appendChild(overlay);
+    }
+    overlay.classList.toggle('hidden', !this.game.paused);
+  }
+
   /** 호버 타일 툴팁: 골 → 도달 유닛, 자원 더미 → 구성 */
   updateTileTooltip(cell: { x: number; y: number } | null, mouseX: number, mouseY: number): void {
     let el = document.getElementById('tile-tooltip');
@@ -178,7 +225,9 @@ export class Hud {
       if (pile) {
         const parts = Object.entries(pile.bricks)
           .filter(([, n]) => (n ?? 0) > 0)
-          .map(([c, n]) => `${BRICK_KO[c] ?? c}×${n}`);
+          .map(([c, n]) => c === 'energy' && pile.energyCharge < 100
+            ? `${BRICK_KO[c]}×${n} (충전 ${Math.round(pile.energyCharge)}%)`
+            : `${BRICK_KO[c] ?? c}×${n}`);
         if (parts.length) lines.push(`<b>🧱 브릭 더미</b> — ${parts.join(', ')}`);
       }
     }

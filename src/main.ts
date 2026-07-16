@@ -27,8 +27,13 @@ function saveProgress(p: Progress): void {
 }
 let progress = loadProgress();
 
+/** 전체 해금은 개발 모드 전용 (빌드에서는 저장된 플래그도 무시) */
+function unlockAllActive(): boolean {
+  return import.meta.env.DEV && progress.unlockAll;
+}
+
 function isUnlocked(world: number, mission: number): boolean {
-  if (progress.unlockAll || mission === 1) return true;
+  if (unlockAllActive() || mission === 1) return true;
   // 해당 미션 번호를 unlocks 에 포함한 선행 미션 중 하나라도 완료됐으면 해금
   return LEVELS.some(l => l.world === world && l.unlocks.includes(mission)
     && progress.done[`${world}.${l.mission}`]?.goal);
@@ -36,12 +41,12 @@ function isUnlocked(world: number, mission: number): boolean {
 
 /** 월드 해금: 이전 월드 미션 12 클리어 (unlocks 의 13 = 다음 월드) */
 function isWorldUnlocked(world: number): boolean {
-  if (world === 1 || progress.unlockAll) return true;
+  if (world === 1 || unlockAllActive()) return true;
   return !!progress.done[`${world - 1}.12`]?.goal;
 }
 
 /** 현재 구현 완료된 월드 (이후 월드는 다음 단계에서 개방) */
-const IMPLEMENTED_WORLDS = 2;
+const IMPLEMENTED_WORLDS = 5;
 
 // ---------- 메뉴 ----------
 let currentWorld = 1;
@@ -52,7 +57,7 @@ function showMenu(): void {
   $('game').classList.add('hidden');
   const menu = $('menu');
   menu.classList.remove('hidden');
-  menu.innerHTML = '<h1>LEGO WorldBuilder Remake</h1>';
+  menu.innerHTML = '<h1>레고 WorldBuilder Remake</h1>';
 
   const tabs = document.createElement('div');
   tabs.className = 'world-tabs';
@@ -78,14 +83,17 @@ function showMenu(): void {
   }
   menu.appendChild(grid);
 
-  const opt = document.createElement('label');
-  opt.innerHTML = `<input type="checkbox" ${progress.unlockAll ? 'checked' : ''}/> 전체 미션 해금 (검토용)`;
-  opt.querySelector('input')!.onchange = ev => {
-    progress.unlockAll = (ev.target as HTMLInputElement).checked;
-    saveProgress(progress);
-    showMenu();
-  };
-  menu.appendChild(opt);
+  // 전체 해금 체크박스는 개발 모드에서만 렌더 (빌드 배포본에는 노출하지 않음)
+  if (import.meta.env.DEV) {
+    const opt = document.createElement('label');
+    opt.innerHTML = `<input type="checkbox" ${progress.unlockAll ? 'checked' : ''}/> 전체 미션 해금 (검토용)`;
+    opt.querySelector('input')!.onchange = ev => {
+      progress.unlockAll = (ev.target as HTMLInputElement).checked;
+      saveProgress(progress);
+      showMenu();
+    };
+    menu.appendChild(opt);
+  }
 }
 
 // ---------- 게임 루프 ----------
@@ -131,7 +139,13 @@ function startMission(def: LevelDef): void {
     },
     unitLost: name => hud?.toast(`💥 ${name} 이(가) 파괴되었습니다!`),
   });
-  hud = new Hud(g, { onExit: endMission, onEndMission: endMission });
+  const restart = () => {
+    cancelAnimationFrame(rafId);
+    tutorial?.destroy();
+    tutorial = null;
+    startMission(def);
+  };
+  hud = new Hud(g, { onExit: endMission, onEndMission: endMission, onRetry: restart });
 
   // 카메라 초기 위치
   const c = def.center ?? [Math.floor(def.width / 2), Math.floor(def.height / 2)];
@@ -162,6 +176,7 @@ function startMission(def: LevelDef): void {
   canvas.onmouseup = e => {
     dragging = false;
     if (movedPx > 6) return; // 드래그였음
+    if (g.paused) return;    // 일시정지 중에는 게임 명령 차단 (카메라 이동은 허용)
     const rect = canvas.getBoundingClientRect();
     const [cx, cy] = pickCell(e.clientX - rect.left, e.clientY - rect.top, cam);
     g.clickCell(cx, cy);
@@ -173,12 +188,15 @@ function startMission(def: LevelDef): void {
     keys.add(e.key);
     // 능력 단축키 (원작과 같은 토글식)
     //   SPACE: 유닛의 주 능력 (집기/내려놓기 · 파기/메우기 · 나무 뽑기/심기 · 밀기 — 유닛당 1종)
-    //   X: 공격, R: 분해하기
+    //   X: 공격, T: 분해하기, R: 미션 재시도
     if (!e.repeat) {
       const sel = g.selected;
       const key = e.key.toLowerCase();
       const toggle = (action: 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant' | 'push' | 'attack') =>
         g.setMode(g.mode.type === action ? { type: 'move' } : { type: action });
+      if (key === 'p') { hud?.togglePause(); return; }
+      if (key === 'r') { restart(); return; }
+      if (g.paused) return; // 일시정지 중에는 능력/플랜 단축키 차단
       if (sel && sel.cls === 'unit') {
         if (key === ' ') {
           e.preventDefault();
@@ -187,7 +205,7 @@ function startMission(def: LevelDef): void {
           else if (sel.def.transplant) toggle(sel.hasTree ? 'plant' : 'uproot');
           else if (sel.def.push) toggle('push');
         } else if (key === 'x' && sel.def.attack) toggle('attack');
-        else if (key === 'r') g.takeApart(sel);
+        else if (key === 't') g.takeApart(sel);
       }
       // 버튼 포커스가 남아 스페이스가 버튼을 재클릭하지 않도록
       if (key === ' ') (document.activeElement as HTMLElement | null)?.blur?.();
@@ -244,7 +262,7 @@ function endMission(): void {
 // ---------- 부트 ----------
 async function boot(): Promise<void> {
   const menu = $('menu');
-  menu.innerHTML = '<h1>LEGO WorldBuilder Remake</h1><p>애셋 로딩 중…</p>';
+  menu.innerHTML = '<h1>레고 WorldBuilder Remake</h1><p>애셋 로딩 중…</p>';
   await loadSprites(Object.keys(SPRITE_MANIFEST));
   preloadAudio();
   showMenu();

@@ -2380,7 +2380,7 @@ export const LEVELS: LevelDef[] = [
   "width": 28,
   "height": 11,
   "grid": [
-   "@b.......c...........@....c.",
+   "@b.......c.......m...@....c.",
    "@....................@..i...",
    "@@@________________.c@......",
    "..._TTTT.TTT.TTTTT_..@@@@@@.",
@@ -2390,7 +2390,7 @@ export const LEVELS: LevelDef[] = [
    "@.._T_TT_TT_TTTTTT_..@@@@@@.",
    "@..________________..@......",
    "@c...................@..2k..",
-   "@.............c......@.c...."
+   "@......m......c......@.c...."
   ],
   "items": {
    "1": {
@@ -2480,7 +2480,13 @@ export const LEVELS: LevelDef[] = [
     "water": false,
     "unit": "gas_station",
     "uses": 1
-   }
+   },
+   // custom
+   "m": {
+        kind: "pile",
+        water: false,
+        contents: { energy: 1 }
+    }
   },
   "inventory": {
    "buggy": 10

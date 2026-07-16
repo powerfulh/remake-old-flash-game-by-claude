@@ -96,7 +96,7 @@ const STEPS: TutStep[] = [
     done: t => buggyCount(t.game) >= 1,
   },
   {
-    text: '잘했어요, 버기 완성! 🎉<br><br>모델은 분해할 수도 있습니다. 버기를 선택하고 <b>분해하기 (R)</b> 버튼을 눌러 보세요.',
+    text: '잘했어요, 버기 완성! 🎉<br><br>모델은 분해할 수도 있습니다. 버기를 선택하고 <b>분해하기 (T)</b> 버튼을 눌러 보세요.',
     domFind: findActionBtn('분해'),
     done: t => buggyCount(t.game) === 0,
   },

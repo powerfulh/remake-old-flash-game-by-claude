@@ -1,4 +1,5 @@
 import type { Bricks, LevelDef } from '../data/types';
+import { COMBAT_STATS, SWAMP_HAZARD } from '../data/combatStats';
 import { UNIT_DATA } from './../data/generated/units';
 import { CONFIG } from './const';
 import { brickTotal, Entity, LevelState, unitDefOf } from './level';
@@ -38,8 +39,8 @@ export class Game {
   time = 0;
   /** 커서가 올라간 셀 (조립 범위 표시용) */
   hover: { x: number; y: number } | null = null;
-  /** 진행 중인 이펙트 (조립/분해 구름) */
-  effects: { x: number; y: number; kind: 'build' | 'takeApart'; t: number }[] = [];
+  /** 진행 중인 이펙트 (조립/분해 구름, 피격 버스트) */
+  effects: { x: number; y: number; kind: 'build' | 'takeApart' | 'damage'; t: number }[] = [];
   /** 튜토리얼이 가리키는 셀 (렌더러가 마커 표시) */
   tutorialCell: [number, number] | null = null;
   private ev: GameEvents;
@@ -52,10 +53,10 @@ export class Game {
   // ---------- 선택/명령 ----------
 
   select(e: Entity | null): void {
-    if (e && (e.cls === 'monster' || e.dead)) return;
+    if (e?.dead) return;
     this.selected = e;
     this.mode = { type: 'move' };
-    if (e) {
+    if (e && e.cls !== 'monster') {
       const k = e.def.kind;
       playSfxEvent(k === 'animal' ? 'unit_animal' : k === 'robot' ? 'unit_robot' : 'unit_vehicle');
     }
@@ -64,13 +65,13 @@ export class Game {
 
   setMode(mode: ActionMode, sfx: SfxEvent = 'click_button'): void {
     playSfxEvent(sfx);
-    // 인접 액션은 사방+발밑이 전부 무효면 타일 선택을 생략하고 바로 안내
+    // 인접 액션은 맵 어디에도 유효 대상이 없으면 타일 선택을 생략하고 바로 안내.
+    // (자동 접근이 가능하므로 "주변 5칸" 이 아니라 맵 전체를 검사해야 함)
     if (this.selected && isAdjacentAction(mode.type)) {
       const e = this.selected;
-      const any = [[0, 0], [0, -1], [0, 1], [-1, 0], [1, 0]]
-        .some(([dx, dy]) => this.canActAt(e, mode.type as AdjacentAction, e.x + dx, e.y + dy));
-      if (!any) {
-        this.ev.toast(noTargetMessage(e, mode.type as AdjacentAction));
+      const action = mode.type as AdjacentAction;
+      if (!this.anyFeasibleTarget(e, action)) {
+        this.ev.toast(noTargetMessage(e, action));
         this.mode = { type: 'move' };
         this.ev.selectionChanged();
         return;
@@ -78,6 +79,21 @@ export class Game {
     }
     this.mode = mode;
     this.ev.selectionChanged();
+  }
+
+  /** 맵 전체에서 해당 능력을 쓸 수 있는 대상 칸이 하나라도 있는지 (위치 무관 조건) */
+  private anyFeasibleTarget(e: Entity, action: AdjacentAction): boolean {
+    const lv = this.level;
+    for (let y = 0; y < lv.h; y++) {
+      for (let x = 0; x < lv.w; x++) {
+        if (action === 'push') {
+          if (lv.entityAt(x, y)?.type === 'boulder' || lv.piles.has(lv.key(x, y))) return true;
+        } else if (this.canActAt(e, action, x, y)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /** 캔버스 셀 클릭 처리 */
@@ -92,23 +108,15 @@ export class Game {
 
     switch (this.mode.type) {
       case 'move': {
-        if (target && target.cls !== 'monster') { this.select(target); return; }
-        if (target && target.cls === 'monster' && sel?.def.attack) {
-          sel.attackTarget = target.id;
-          this.approach(sel, x, y);
-          return;
-        }
+        // 기본(이동) 모드에서는 몬스터 포함 아무 엔티티나 클릭 = 선택.
+        // 공격 지시는 공격 모드(공격 버튼/X)에서만 내린다.
+        if (target) { this.select(target); return; }
         if (sel && sel.cls === 'unit') this.commandMove(sel, x, y);
-        else if (target) this.select(target);
         break;
       }
-      case 'pickup': this.actAdjacent(sel, x, y, () => this.doPickup(sel!, x, y)); break;
-      case 'drop': this.actAdjacent(sel, x, y, () => this.doDrop(sel!, x, y)); break;
-      case 'dig': this.actAdjacent(sel, x, y, () => this.doDig(sel!, x, y)); break;
-      case 'fill': this.actAdjacent(sel, x, y, () => this.doFill(sel!, x, y)); break;
-      case 'uproot': this.actAdjacent(sel, x, y, () => this.doUproot(sel!, x, y)); break;
-      case 'plant': this.actAdjacent(sel, x, y, () => this.doPlant(sel!, x, y)); break;
-      case 'push': this.actAdjacent(sel, x, y, () => this.doPush(sel!, x, y)); break;
+      case 'pickup': case 'drop': case 'dig': case 'fill': case 'uproot': case 'plant': case 'push':
+        this.actAdjacent(sel, x, y, this.mode.type);
+        break;
       case 'attack': {
         if (target && target.cls === 'monster' && sel?.def.attack) {
           sel.attackTarget = target.id;
@@ -121,15 +129,53 @@ export class Game {
     }
   }
 
-  /** 인접 필요 액션: 인접하면 즉시 실행, 아니면 안내 */
-  private actAdjacent(sel: Entity | null, x: number, y: number, fn: () => void): void {
+  /** 능력 실행 디스패처 (인접 상태 전제) */
+  private performAction(e: Entity, action: AdjacentAction, x: number, y: number): void {
+    const dist = Math.abs(e.x - x) + Math.abs(e.y - y);
+    if (dist === 1) e.dir = DIR_OF(x - e.x, y - e.y);
+    switch (action) {
+      case 'pickup': this.doPickup(e, x, y); break;
+      case 'drop': this.doDrop(e, x, y); break;
+      case 'dig': this.doDig(e, x, y); break;
+      case 'fill': this.doFill(e, x, y); break;
+      case 'uproot': this.doUproot(e, x, y); break;
+      case 'plant': this.doPlant(e, x, y); break;
+      case 'push': this.doPush(e, x, y); break;
+    }
+  }
+
+  /**
+   * 인접 필요 액션: 인접하면 즉시 실행.
+   * 멀면 대상과 인접한 칸까지 이동 가능한지 계산해 자동 이동 + 도착 시 실행을 예약,
+   * 접근 불가면 토스트.
+   */
+  private actAdjacent(sel: Entity | null, x: number, y: number, action: AdjacentAction): void {
     if (!sel) return;
     const dist = Math.abs(sel.x - x) + Math.abs(sel.y - y);
     if (dist <= 1) {
-      if (dist === 1) sel.dir = DIR_OF(x - sel.x, y - sel.y);
-      fn();
+      sel.pendingAction = null;
+      this.performAction(sel, action, x, y);
     } else {
-      this.ev.toast('유닛과 인접한 칸을 선택하세요');
+      // 위치 무관 조건 사전 검증 (push 는 방향 의존이라 대상 존재만 확인)
+      const lv = this.level;
+      const feasible = action === 'push'
+        ? lv.entityAt(x, y)?.type === 'boulder' || lv.piles.has(lv.key(x, y))
+        : this.canActAt(sel, action, x, y);
+      if (!feasible) {
+        this.ev.toast('그 칸에는 이 능력을 사용할 수 없습니다');
+      } else {
+        const path = findPathAdjacent(lv.w, lv.h, { x: sel.x, y: sel.y }, { x, y },
+          (px, py) => lv.passableFor(sel, px, py),
+          (px, py) => lv.moveCost(sel, px, py));
+        if (!path) {
+          this.ev.toast('그 위치까지 이동할 수 없습니다');
+        } else {
+          sel.path = path;
+          sel.attackTarget = null;
+          sel.pendingAction = { action, x, y };
+          playSfxEvent('move');
+        }
+      }
     }
     this.mode = { type: 'move' };
     this.ev.selectionChanged();
@@ -144,6 +190,7 @@ export class Game {
     if (!path) { this.ev.toast('갈 수 없는 곳입니다'); return; }
     e.path = path;
     e.attackTarget = null;
+    e.pendingAction = null; // 새 이동 명령은 예약된 능력을 취소
     playSfxEvent('move');
   }
 
@@ -168,14 +215,17 @@ export class Game {
     const k = lv.key(x, y);
     switch (action) {
       case 'push': {
-        // dozer: 바위(boulder) 또는 브릭 더미를 유닛 반대 방향으로 한 칸 밀기
+        // dozer: 바위(boulder) 또는 브릭 더미를 유닛 반대 방향으로 한 칸 밀기.
+        // 바위는 물로도 밀 수 있다 (가라앉음 — 물 위의 boulder 골 달성 수단)
         if (!e.def.push || e.energy < (e.def.energy.push ?? 1)) return false;
         const dx = x - e.x, dy = y - e.y;
         if (Math.abs(dx) + Math.abs(dy) !== 1) return false;
         const nx = x + dx, ny = y + dy;
         const target = lv.entityAt(x, y);
         if (target && target.type === 'boulder') {
-          return lv.passableFor(target, nx, ny) && !lv.piles.has(lv.key(nx, ny));
+          if (lv.entityAt(nx, ny) || lv.piles.has(lv.key(nx, ny))) return false;
+          const nt = lv.terrainAt(nx, ny);
+          return !!nt && (target.def.terrain.includes(nt) || nt === 'water' || nt === 'reef' || nt === 'whirl');
         }
         if (lv.piles.has(k)) {
           const nt = lv.terrainAt(nx, ny);
@@ -188,8 +238,9 @@ export class Game {
       case 'drop':
         return brickTotal(e.carrying) > 0 && t !== 'mountain' && t !== 'tree' && t !== 'volcano';
       case 'dig':
+        // 브릭 더미가 있어도 굴착 가능 (더미는 물 위에 남는다)
         return e.def.dig && !e.hasDirt && (t === 'normal' || t === 'swamp')
-          && !lv.entityAt(x, y) && !lv.piles.has(k) && e.energy >= (e.def.energy.dig ?? 1);
+          && !lv.entityAt(x, y) && e.energy >= (e.def.energy.dig ?? 1);
       case 'fill':
         return e.def.dig && (t === 'water' || t === 'whirl')
           && (!CONFIG.fillRequiresDirt || e.hasDirt)
@@ -220,6 +271,11 @@ export class Game {
       if (space <= 0) break;
       const take = Math.min(n ?? 0, space);
       if (take <= 0) continue;
+      if (c === 'energy') {
+        // 운반 중 에너지 브릭 충전량은 수량 가중 평균으로 합산
+        const carriedE = e.carrying.energy ?? 0;
+        e.carryCharge = (e.carryCharge * carriedE + pile.energyCharge * take) / (carriedE + take);
+      }
       pile.bricks[c as keyof Bricks] = (n ?? 0) - take;
       e.carrying[c as keyof Bricks] = (e.carrying[c as keyof Bricks] ?? 0) + take;
       space -= take;
@@ -234,7 +290,7 @@ export class Game {
     if (brickTotal(e.carrying) === 0) { this.ev.toast('운반 중인 브릭이 없습니다'); return; }
     const t = this.level.terrainAt(x, y);
     if (!t || t === 'mountain' || t === 'tree' || t === 'volcano') { this.ev.toast('여기엔 내려놓을 수 없습니다'); return; }
-    this.level.addBricks(x, y, e.carrying);
+    this.level.addBricks(x, y, e.carrying, e.carryCharge);
     e.carrying = {};
     playSfxEvent('drop');
     this.ev.selectionChanged();
@@ -245,7 +301,7 @@ export class Game {
     const lv = this.level;
     if (lv.terrainAt(x, y) !== 'normal' && lv.terrainAt(x, y) !== 'swamp') { this.ev.toast('팔 수 없는 지형입니다'); return; }
     if (e.hasDirt) { this.ev.toast('이미 흙을 싣고 있습니다 — 먼저 FILL 하세요'); return; }
-    if (lv.entityAt(x, y) || lv.piles.has(lv.key(x, y))) { this.ev.toast('비어 있는 칸이어야 합니다'); return; }
+    if (lv.entityAt(x, y)) { this.ev.toast('유닛이 있는 칸은 팔 수 없습니다'); return; }
     if (!this.spend(e, 'dig')) return;
     lv.terrain[y][x] = 'water';
     e.hasDirt = true;
@@ -319,7 +375,13 @@ export class Game {
 
   takeApart(e: Entity): void {
     const lv = this.level;
-    lv.addBricks(e.x, e.y, e.def.recipe);
+    // 분해된 에너지 브릭은 유닛의 현재 에너지를 그대로 유지
+    lv.addBricks(e.x, e.y, e.def.recipe, e.energy);
+    // 적재 중이던 브릭도 그 자리에 함께 드랍
+    if (brickTotal(e.carrying) > 0) {
+      lv.addBricks(e.x, e.y, e.carrying, e.carryCharge);
+      e.carrying = {};
+    }
     e.dead = true;
     this.effects.push({ x: e.x, y: e.y, kind: 'takeApart', t: 0 });
     if (this.selected?.id === e.id) this.select(null);
@@ -366,16 +428,23 @@ export class Game {
     }
     const cells: string[] = [];
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) cells.push(lv.key(x + dx, y + dy));
-    // 소모
+    // 소모 — 사용한 에너지 브릭의 충전량이 새 유닛의 시작 에너지가 된다.
+    // 에너지 브릭은 충전량이 가장 높은 더미부터 소모 (여러 개 있을 때 최선의 브릭 선택)
+    let energyTaken = 0, energyChargeSum = 0;
     for (const [c, needRaw] of Object.entries(def.recipe)) {
+      const order = c === 'energy'
+        ? [...cells].sort((a, b) =>
+          (lv.piles.get(b)?.energyCharge ?? -1) - (lv.piles.get(a)?.energyCharge ?? -1))
+        : cells;
       let need = needRaw ?? 0;
-      for (const k of cells) {
+      for (const k of order) {
         if (need <= 0) break;
         const p = lv.piles.get(k);
         if (!p) continue;
         const have = p.bricks[c as keyof Bricks] ?? 0;
         const take = Math.min(have, need);
         if (take > 0) {
+          if (c === 'energy') { energyTaken += take; energyChargeSum += p.energyCharge * take; }
           p.bricks[c as keyof Bricks] = have - take;
           if (!p.bricks[c as keyof Bricks]) delete p.bricks[c as keyof Bricks];
           need -= take;
@@ -387,11 +456,13 @@ export class Game {
     if (plan.uses <= 0) lv.planInv.splice(planIdx, 1);
     const cls = UNITKIND(plan.unit);
     const e = lv.spawn(cls, plan.unit, x, y);
+    if (e && energyTaken > 0) e.energy = energyChargeSum / energyTaken;
     this.effects.push({ x, y, kind: 'build', t: 0 });
     playSfxEvent('assembly');
     this.ev.plansChanged();
     this.ev.selectionChanged();
-    if (e) this.checkGoals(e);
+    // 이동 도착과 동일한 훅: 그 칸의 플랜 획득, 소용돌이 워프, 골 판정
+    if (e) this.onArrive(e);
   }
 
   // ---------- 진행/골 ----------
@@ -440,6 +511,21 @@ export class Game {
         e.path = [];
       }
       this.checkGoals(e);
+      return;
+    }
+    // 몬스터 도착 훅
+    // 1) 몬스터를 타깃으로 하는 골 (예: 4-6 gator 골 — 몬스터를 골 지점으로 유인)
+    for (const g of lv.goals) {
+      if (!g.done && g.x === e.x && g.y === e.y && g.target === e.type) this.completeGoal(g);
+    }
+    // 2) 물로 밀린 바위는 가라앉는다 (골 판정은 doPush 에서 이미 처리)
+    if (e.type === 'boulder') {
+      const t = lv.terrainAt(e.x, e.y);
+      if (t === 'water' || t === 'reef' || t === 'whirl') {
+        e.dead = true;
+        this.effects.push({ x: e.x, y: e.y, kind: 'takeApart', t: 0 });
+        playSfxEvent('fill_ground');
+      }
     }
   }
 
@@ -450,12 +536,40 @@ export class Game {
     this.time += dt;
     for (const fx of this.effects) fx.t += dt;
     this.effects = this.effects.filter(fx => fx.t < EFFECT_DURATION[fx.kind]);
+    // 1) 이동/도착 페이즈 — 골 판정이 같은 틱의 전투보다 항상 먼저 처리되도록 분리
+    //    (크랩 공격이 배열 순서상 먼저 실행되어, 골을 밟는 도착이 사망으로 스킵되는 문제 방지)
     for (const e of this.level.entities) {
       if (e.dead) continue;
       if (e.cls === 'monster') this.tickMonster(e, dt);
       this.tickMove(e, dt);
+    }
+    // 2) 전투/충전 페이즈
+    for (const e of this.level.entities) {
+      if (e.dead) continue;
       this.tickCombat(e, dt);
       this.tickRecharge(e, dt);
+    }
+    this.tickSwamp(dt);
+  }
+
+  private swampTimer = 0;
+
+  /** 늪 지형 데미지 (원작 #swamp 정의) — period 마다 늪 위의 플레이어 유닛에 적용 */
+  private tickSwamp(dt: number): void {
+    this.swampTimer += dt;
+    while (this.swampTimer >= SWAMP_HAZARD.period) {
+      this.swampTimer -= SWAMP_HAZARD.period;
+      for (const e of this.level.entities) {
+        if (e.dead || e.cls === 'monster') continue;
+        if (this.level.terrainAt(e.x, e.y) !== 'swamp') continue;
+        const dmg = Math.max(0, SWAMP_HAZARD.damage - (COMBAT_STATS[e.type]?.defense ?? 0));
+        if (dmg <= 0) continue;
+        e.energy -= dmg;
+        e.lastHitAt = this.time;
+        this.effects.push({ x: e.x, y: e.y, kind: 'damage', t: 0 });
+        if (this.selected?.id === e.id) this.ev.selectionChanged();
+        if (e.energy <= 0) this.destroy(e);
+      }
     }
   }
 
@@ -464,17 +578,30 @@ export class Game {
     if (!e.def.recharges.length) return;
     for (const u of this.level.entities) {
       if (u.dead || u.id === e.id || !e.def.recharges.includes(u.type)) continue;
-      if (Math.max(Math.abs(u.x - e.x), Math.abs(u.y - e.y)) > 1) continue;
+      if (Math.abs(u.x - e.x) + Math.abs(u.y - e.y) > 1) continue; // 맨해튼 1 (직교 인접)
       if (u.energy < CONFIG.maxEnergy) {
         u.energy = Math.min(CONFIG.maxEnergy, u.energy + RECHARGE_RATE * dt);
+        u.chargingAt = this.time;
         if (this.selected?.id === u.id) this.ev.selectionChanged();
       }
     }
   }
 
   private tickMove(e: Entity, dt: number): void {
+    // 예약된 능력: 이동이 끝났으면 실행 (경로가 막혀 중단된 경우 포함)
+    if (!e.moving && e.path.length === 0 && e.pendingAction) {
+      const pa = e.pendingAction;
+      e.pendingAction = null;
+      if (Math.abs(e.x - pa.x) + Math.abs(e.y - pa.y) <= 1) {
+        this.performAction(e, pa.action as AdjacentAction, pa.x, pa.y);
+      } else {
+        this.ev.toast('접근 경로가 막혀 능력을 사용하지 못했습니다');
+      }
+      this.ev.selectionChanged();
+    }
     if (e.moving) {
-      e.moveT += dt * e.def.speed;
+      // speed 0 엔티티(boulder)도 밀리는 애니메이션은 진행돼야 함
+      e.moveT += dt * (e.def.speed > 0 ? e.def.speed : PUSH_ANIM_SPEED);
       if (e.moveT >= 1) {
         e.moving = false;
         e.moveT = 1;
@@ -484,7 +611,9 @@ export class Game {
       return;
     }
     if (!e.path.length) return;
-    if (e.energy <= 0) { e.path = []; return; }
+    // 몬스터는 이동 에너지를 소모하지 않는다 (에너지 = 전투 자원 전용)
+    const isMonster = e.cls === 'monster';
+    if (!isMonster && e.energy <= 0) { e.path = []; return; }
     const next = e.path[0];
     if (!this.level.passableFor(e, next.x, next.y)) {
       // 막히면 재탐색
@@ -496,9 +625,11 @@ export class Game {
       return;
     }
     e.path.shift();
-    const cost = e.def.energy.move ?? 1;
-    if (e.energy < cost) { e.path = []; return; }
-    e.energy -= cost;
+    if (!isMonster) {
+      const cost = e.def.energy.move ?? 1;
+      if (e.energy < cost) { e.path = []; return; }
+      e.energy -= cost;
+    }
     e.fromX = e.x; e.fromY = e.y;
     e.dir = DIR_OF(next.x - e.x, next.y - e.y);
     e.x = next.x; e.y = next.y;
@@ -530,23 +661,28 @@ export class Game {
         (px, py) => this.level.passableFor(m, px, py),
         (px, py) => this.level.terrainAt(px, py) === 'swamp' ? 2 : 1); // 추적 시 늪 페널티 1
       if (p) { m.path = p.slice(0, 2); return; }
+      // 타깃까지 경로가 없으면(도달 불가) 배회로 폴백 — 제자리에 얼어붙지 않도록
     }
-    if (!target) {
-      // 배회
-      m.wanderCd -= dt;
-      if (m.wanderCd <= 0) {
-        m.wanderCd = 1.5 + Math.random() * 3;
-        const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]].sort(() => Math.random() - 0.5);
-        for (const [dx, dy] of dirs) {
-          if (this.level.passableFor(m, m.x + dx, m.y + dy)) { m.path = [{ x: m.x + dx, y: m.y + dy }]; break; }
-        }
+    // 배회
+    m.wanderCd -= dt;
+    if (m.wanderCd <= 0) {
+      m.wanderCd = 1.5 + Math.random() * 3;
+      const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]].sort(() => Math.random() - 0.5);
+      for (const [dx, dy] of dirs) {
+        if (this.level.passableFor(m, m.x + dx, m.y + dy)) { m.path = [{ x: m.x + dx, y: m.y + dy }]; break; }
       }
     }
   }
 
+  /**
+   * 에너지 기반 전투 (난수 없음):
+   * - 피해 = max(0, 공격자 attack - 피격자 defense) 를 에너지에서 차감
+   *   (비전투 유닛은 COMBAT_STATS 에 없으므로 방어력 0 으로 동일 로직)
+   * - 에너지 0 이하 → 강제 분해
+   */
   private tickCombat(e: Entity, dt: number): void {
     const atk = e.def.attack;
-    if (!atk) return;
+    if (!atk || !COMBAT_STATS[e.type]) return;
     e.attackCd -= dt;
     if (e.attackCd > 0) return;
     if (e.cls === 'monster' && e.resting) return;
@@ -556,34 +692,49 @@ export class Game {
     if (e.cls === 'monster') {
       for (const u of this.level.entities) {
         if (u.dead || u.cls === 'monster') continue;
-        if (Math.max(Math.abs(u.x - e.x), Math.abs(u.y - e.y)) <= CONFIG.attackAdjacency) { target = u; break; }
+        // 근접 공격은 상하좌우 인접만 (이동이 4방향이므로 "접촉" = 직교 인접)
+        if (Math.abs(u.x - e.x) + Math.abs(u.y - e.y) <= CONFIG.attackAdjacency) { target = u; break; }
       }
     } else {
+      // 원거리 사거리도 맨해튼 거리로 통일 (다이아몬드형 범위)
       const explicit = e.attackTarget != null ? this.level.entities.find(t => t.id === e.attackTarget && !t.dead) : null;
-      if (explicit && Math.max(Math.abs(explicit.x - e.x), Math.abs(explicit.y - e.y)) <= atk.searchRange) target = explicit;
+      if (explicit && Math.abs(explicit.x - e.x) + Math.abs(explicit.y - e.y) <= atk.searchRange) target = explicit;
       if (!target) {
         for (const mtr of this.level.entities) {
           if (mtr.dead || mtr.cls !== 'monster' || mtr.type === 'boulder') continue;
-          if (Math.max(Math.abs(mtr.x - e.x), Math.abs(mtr.y - e.y)) <= atk.searchRange) { target = mtr; break; }
+          if (Math.abs(mtr.x - e.x) + Math.abs(mtr.y - e.y) <= atk.searchRange) { target = mtr; break; }
         }
       }
     }
     if (!target) return;
+    if (target.type === 'boulder') return; // 파괴 불가 장애물
 
     e.attackCd = 60 / atk.hitsPerMinute;
     e.dir = DIR_OF(Math.sign(target.x - e.x), Math.sign(target.y - e.y));
-    if (Math.random() * 100 > atk.chance) return; // 빗나감
-    const [lo, hi] = atk.damage;
-    const dmg = (lo + Math.random() * (hi - lo)) * target.def.shield;
-    target.hp -= dmg;
+    const defense = COMBAT_STATS[target.type]?.defense ?? 0; // 비전투 유닛은 방어력 0
+    const dmg = Math.max(0, COMBAT_STATS[e.type].attack - defense);
+    if (dmg <= 0) return; // 방어력이 공격력 이상이면 무피해
+    target.energy -= dmg;
+    target.lastHitAt = this.time;
+    this.effects.push({ x: target.x, y: target.y, kind: 'damage', t: 0 });
     playSfxEvent(e.cls === 'monster' ? 'monster_attack' : 'damage');
-    if (target.hp <= 0) this.destroy(target);
+    if (this.selected?.id === target.id) this.ev.selectionChanged();
+    if (target.energy <= 0) this.destroy(target);
   }
 
+  /**
+   * 강제 분해: 에너지 고갈로 파괴.
+   * 플레이어 유닛의 에너지 브릭은 잔량(=0) 드랍, 몬스터는 예외적으로 풀충전 드랍.
+   */
   private destroy(e: Entity): void {
     e.dead = true;
-    // 파괴 시 레시피 브릭 드랍 (원본: 몬스터가 유닛을 분해)
-    this.level.addBricks(e.x, e.y, e.def.recipe);
+    const charge = e.cls === 'monster' ? CONFIG.maxEnergy : Math.max(0, e.energy);
+    this.level.addBricks(e.x, e.y, e.def.recipe, charge);
+    // 적재 중이던 브릭도 그 자리에 함께 드랍
+    if (brickTotal(e.carrying) > 0) {
+      this.level.addBricks(e.x, e.y, e.carrying, e.carryCharge);
+      e.carrying = {};
+    }
     this.effects.push({ x: e.x, y: e.y, kind: 'takeApart', t: 0 });
     if (e.cls !== 'monster') this.ev.unitLost(e.def.name || e.type);
     if (this.selected?.id === e.id) this.select(null);
@@ -595,11 +746,14 @@ function UNITKIND(type: string): 'unit' | 'building' {
   return UNIT_DATA.buildings[type] ? 'building' : 'unit';
 }
 
-/** 이펙트 재생 시간(초) — build 2프레임, takeApart 3프레임 */
-export const EFFECT_DURATION = { build: 0.28, takeApart: 0.36 } as const;
+/** 이펙트 재생 시간(초) — build 2프레임, takeApart 3프레임, damage 5프레임 */
+export const EFFECT_DURATION = { build: 0.28, takeApart: 0.36, damage: 0.4 } as const;
 
 /** 충전 건물의 초당 에너지 회복량 */
 const RECHARGE_RATE = 34;
+
+/** 밀리는 물체(boulder 등 speed 0)의 이동 애니메이션 속도 (칸/초) */
+const PUSH_ANIM_SPEED = 2.5;
 
 export type AdjacentAction = 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant' | 'push';
 
@@ -608,20 +762,20 @@ function isAdjacentAction(t: string): t is AdjacentAction {
     || t === 'uproot' || t === 'plant' || t === 'push';
 }
 
-/** 사용 가능한 칸이 하나도 없을 때의 원인별 안내 문구 */
+/** 사용 가능한 대상이 맵에 하나도 없을 때의 원인별 안내 문구 */
 function noTargetMessage(e: Entity, action: AdjacentAction): string {
   switch (action) {
-    case 'pickup': return '주변에 집을 수 있는 브릭 더미가 없습니다';
-    case 'drop': return '주변에 내려놓을 수 있는 칸이 없습니다';
+    case 'pickup': return '집을 수 있는 브릭 더미가 없습니다';
+    case 'drop': return '내려놓을 수 있는 칸이 없습니다';
     case 'dig':
-      return e.hasDirt ? '이미 흙을 싣고 있습니다 — 먼저 FILL 하세요' : '주변에 팔 수 있는 땅이 없습니다';
+      return e.hasDirt ? '이미 흙을 싣고 있습니다 — 먼저 FILL 하세요' : '팔 수 있는 땅이 없습니다';
     case 'fill':
-      return e.hasDirt ? '주변에 메울 수 있는 물이 없습니다' : '먼저 DIG 로 흙을 퍼 와야 합니다';
+      return e.hasDirt ? '메울 수 있는 물이 없습니다' : '먼저 DIG 로 흙을 퍼 와야 합니다';
     case 'uproot':
-      return e.hasTree ? '이미 나무를 들고 있습니다 — 먼저 심으세요' : '주변에 뽑을 나무가 없습니다';
+      return e.hasTree ? '이미 나무를 들고 있습니다 — 먼저 심으세요' : '뽑을 나무가 없습니다';
     case 'plant':
-      return e.hasTree ? '주변에 심을 수 있는 칸이 없습니다' : '심을 나무가 없습니다 — 먼저 나무를 뽑으세요';
+      return e.hasTree ? '심을 수 있는 칸이 없습니다' : '심을 나무가 없습니다 — 먼저 나무를 뽑으세요';
     case 'push':
-      return '주변에 밀 수 있는 바위나 브릭 더미가 없습니다 (밀려날 자리도 비어 있어야 합니다)';
+      return '밀 수 있는 바위나 브릭 더미가 없습니다';
   }
 }

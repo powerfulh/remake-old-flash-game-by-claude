@@ -9,6 +9,13 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "regX": 19,
   "regY": 11
  },
+ "icon.charging.0": {
+  "file": "icon.charging.0.png",
+  "w": 21,
+  "h": 12,
+  "regX": 0,
+  "regY": -34
+ },
  "resource.red.4": {
   "file": "resource.red.4.png",
   "w": 58,
@@ -58,6 +65,13 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "regX": 19,
   "regY": 13
  },
+ "icon.charging.2": {
+  "file": "icon.charging.2.png",
+  "w": 21,
+  "h": 12,
+  "regX": 0,
+  "regY": -34
+ },
  "resource.green.2": {
   "file": "resource.green.2.png",
   "w": 38,
@@ -78,6 +92,13 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "h": 27,
   "regX": 19,
   "regY": 13
+ },
+ "icon.no_energy": {
+  "file": "icon.no_energy.png",
+  "w": 21,
+  "h": 12,
+  "regX": 0,
+  "regY": -34
  },
  "resource.yellow.4": {
   "file": "resource.yellow.4.png",
@@ -127,6 +148,20 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "h": 39,
   "regX": 34,
   "regY": 25
+ },
+ "icon.low_energy": {
+  "file": "icon.low_energy.png",
+  "w": 21,
+  "h": 12,
+  "regX": 0,
+  "regY": -34
+ },
+ "icon.charging.1": {
+  "file": "icon.charging.1.png",
+  "w": 21,
+  "h": 12,
+  "regX": 0,
+  "regY": -34
  },
  "carry.blue": {
   "file": "carry.blue.png",
@@ -246,6 +281,41 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "h": 130,
   "regX": 74,
   "regY": 46
+ },
+ "damage.small.5": {
+  "file": "damage.small.5.png",
+  "w": 123,
+  "h": 134,
+  "regX": 53,
+  "regY": 59
+ },
+ "damage.small.4": {
+  "file": "damage.small.4.png",
+  "w": 95,
+  "h": 113,
+  "regX": 40,
+  "regY": 53
+ },
+ "damage.small.3": {
+  "file": "damage.small.3.png",
+  "w": 70,
+  "h": 90,
+  "regX": 29,
+  "regY": 41
+ },
+ "damage.small.2": {
+  "file": "damage.small.2.png",
+  "w": 44,
+  "h": 62,
+  "regX": 15,
+  "regY": 26
+ },
+ "damage.small.1": {
+  "file": "damage.small.1.png",
+  "w": 26,
+  "h": 37,
+  "regX": 10,
+  "regY": 15
  },
  "terrain.normal": {
   "file": "terrain.normal.png",
@@ -1627,32 +1697,32 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "regY": 51
  },
  "vehicle.defender.up": {
-  "file": "vehicle.defender.up.png",
-  "w": 67,
-  "h": 75,
-  "regX": 33,
-  "regY": 49
+  "file": "vehicle.defender.up.walk.1.png",
+  "w": 49,
+  "h": 83,
+  "regX": 27,
+  "regY": 57
  },
  "vehicle.defender.down": {
-  "file": "vehicle.defender.down.png",
-  "w": 61,
-  "h": 71,
-  "regX": 30,
-  "regY": 47
+  "file": "vehicle.defender.down.walk.1.png",
+  "w": 49,
+  "h": 80,
+  "regX": 28,
+  "regY": 55
  },
  "vehicle.defender.left": {
-  "file": "vehicle.defender.left.png",
-  "w": 52,
-  "h": 75,
-  "regX": 26,
-  "regY": 49
+  "file": "vehicle.defender.left.walk.1.png",
+  "w": 69,
+  "h": 84,
+  "regX": 39,
+  "regY": 56
  },
  "vehicle.defender.right": {
-  "file": "vehicle.defender.right.png",
-  "w": 58,
-  "h": 82,
-  "regX": 29,
-  "regY": 53
+  "file": "vehicle.defender.right.walk.1.png",
+  "w": 69,
+  "h": 77,
+  "regX": 34,
+  "regY": 51
  },
  "monster.crab.up": {
   "file": "monster.crab.up.png",
@@ -3375,5 +3445,621 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "h": 59,
   "regX": 9,
   "regY": 20
+ },
+ "vehicle.repairbot.left.walk.2": {
+  "file": "vehicle.repairBot.left.walk.2.png",
+  "w": 28,
+  "h": 34,
+  "regX": 14,
+  "regY": 17
+ },
+ "vehicle.repairbot.down.walk.2": {
+  "file": "vehicle.repairBot.down.walk.2.png",
+  "w": 48,
+  "h": 34,
+  "regX": 24,
+  "regY": 17
+ },
+ "vehicle.repairbot.up.walk.2": {
+  "file": "vehicle.repairBot.up.walk.2.png",
+  "w": 46,
+  "h": 32,
+  "regX": 23,
+  "regY": 16
+ },
+ "vehicle.repairbot.right.walk.2": {
+  "file": "vehicle.repairBot.right.walk.2.png",
+  "w": 27,
+  "h": 34,
+  "regX": 12,
+  "regY": 18
+ },
+ "vehicle.repairbot.left.walk.1": {
+  "file": "vehicle.repairBot.left.walk.1.png",
+  "w": 24,
+  "h": 33,
+  "regX": 13,
+  "regY": 17
+ },
+ "vehicle.repairbot.down.walk.1": {
+  "file": "vehicle.repairBot.down.walk.1.png",
+  "w": 47,
+  "h": 33,
+  "regX": 23,
+  "regY": 16
+ },
+ "vehicle.repairbot.up.walk.1": {
+  "file": "vehicle.repairBot.up.walk.1.png",
+  "w": 46,
+  "h": 31,
+  "regX": 23,
+  "regY": 15
+ },
+ "vehicle.repairbot.right.walk.1": {
+  "file": "vehicle.repairBot.right.walk.1.png",
+  "w": 24,
+  "h": 31,
+  "regX": 8,
+  "regY": 17
+ },
+ "vehicle.repairbot.left.repair.2": {
+  "file": "vehicle.repairBot.left.repair.2.png",
+  "w": 32,
+  "h": 38,
+  "regX": 16,
+  "regY": 19
+ },
+ "vehicle.repairbot.down.repair.2": {
+  "file": "vehicle.repairBot.down.repair.2.png",
+  "w": 47,
+  "h": 33,
+  "regX": 24,
+  "regY": 17
+ },
+ "vehicle.repairbot.up.repair.2": {
+  "file": "vehicle.repairBot.up.repair.2.png",
+  "w": 45,
+  "h": 30,
+  "regX": 21,
+  "regY": 14
+ },
+ "vehicle.repairbot.right.repair.2": {
+  "file": "vehicle.repairBot.right.repair.2.png",
+  "w": 32,
+  "h": 32,
+  "regX": 14,
+  "regY": 17
+ },
+ "vehicle.repairbot.left.repair.1": {
+  "file": "vehicle.repairBot.left.repair.1.png",
+  "w": 26,
+  "h": 33,
+  "regX": 13,
+  "regY": 16
+ },
+ "vehicle.repairbot.down.repair.1": {
+  "file": "vehicle.repairBot.down.repair.1.png",
+  "w": 46,
+  "h": 33,
+  "regX": 23,
+  "regY": 17
+ },
+ "vehicle.repairbot.up.repair.1": {
+  "file": "vehicle.repairBot.up.repair.1.png",
+  "w": 45,
+  "h": 31,
+  "regX": 22,
+  "regY": 17
+ },
+ "vehicle.repairbot.right.repair.1": {
+  "file": "vehicle.repairBot.right.repair.1.png",
+  "w": 26,
+  "h": 37,
+  "regX": 11,
+  "regY": 20
+ },
+ "vehicle.repairbot.left": {
+  "file": "vehicle.repairBot.left.png",
+  "w": 24,
+  "h": 33,
+  "regX": 12,
+  "regY": 18
+ },
+ "vehicle.repairbot.down": {
+  "file": "vehicle.repairBot.down.png",
+  "w": 47,
+  "h": 33,
+  "regX": 23,
+  "regY": 16
+ },
+ "vehicle.repairbot.up": {
+  "file": "vehicle.repairBot.up.png",
+  "w": 46,
+  "h": 31,
+  "regX": 23,
+  "regY": 15
+ },
+ "vehicle.repairbot.right": {
+  "file": "vehicle.repairBot.right.png",
+  "w": 24,
+  "h": 31,
+  "regX": 11,
+  "regY": 18
+ },
+ "vehicle.repairbot.hero": {
+  "file": "vehicle.repairBot.hero.png",
+  "w": 101,
+  "h": 83,
+  "regX": 44,
+  "regY": 54
+ },
+ "vehicle.repairbot.plan": {
+  "file": "vehicle.repairBot.plan.png",
+  "w": 33,
+  "h": 23,
+  "regX": 16,
+  "regY": 11
+ },
+ "vehicle.defender2.plan": {
+  "file": "vehicle.defender.plan.png",
+  "w": 25,
+  "h": 39,
+  "regX": 13,
+  "regY": 20
+ },
+ "vehicle.defender3.plan": {
+  "file": "vehicle.defender.plan.png",
+  "w": 25,
+  "h": 39,
+  "regX": 13,
+  "regY": 20
+ },
+ "vehicle.defender2.right.walk.1": {
+  "file": "vehicle.defender.right.walk.1.png",
+  "w": 69,
+  "h": 77,
+  "regX": 34,
+  "regY": 51
+ },
+ "vehicle.defender3.right.walk.1": {
+  "file": "vehicle.defender.right.walk.1.png",
+  "w": 69,
+  "h": 77,
+  "regX": 34,
+  "regY": 51
+ },
+ "vehicle.defender2.right.walk.2": {
+  "file": "vehicle.defender.right.walk.2.png",
+  "w": 55,
+  "h": 78,
+  "regX": 26,
+  "regY": 54
+ },
+ "vehicle.defender3.right.walk.2": {
+  "file": "vehicle.defender.right.walk.2.png",
+  "w": 55,
+  "h": 78,
+  "regX": 26,
+  "regY": 54
+ },
+ "vehicle.defender2.right.walk.3": {
+  "file": "vehicle.defender.right.walk.3.png",
+  "w": 62,
+  "h": 82,
+  "regX": 33,
+  "regY": 53
+ },
+ "vehicle.defender3.right.walk.3": {
+  "file": "vehicle.defender.right.walk.3.png",
+  "w": 62,
+  "h": 82,
+  "regX": 33,
+  "regY": 53
+ },
+ "vehicle.defender2.right.walk.4": {
+  "file": "vehicle.defender.right.walk.4.png",
+  "w": 55,
+  "h": 83,
+  "regX": 26,
+  "regY": 55
+ },
+ "vehicle.defender3.right.walk.4": {
+  "file": "vehicle.defender.right.walk.4.png",
+  "w": 55,
+  "h": 83,
+  "regX": 26,
+  "regY": 55
+ },
+ "vehicle.defender2.left.walk.1": {
+  "file": "vehicle.defender.left.walk.1.png",
+  "w": 69,
+  "h": 84,
+  "regX": 39,
+  "regY": 56
+ },
+ "vehicle.defender3.left.walk.1": {
+  "file": "vehicle.defender.left.walk.1.png",
+  "w": 69,
+  "h": 84,
+  "regX": 39,
+  "regY": 56
+ },
+ "vehicle.defender2.left.walk.2": {
+  "file": "vehicle.defender.left.walk.2.png",
+  "w": 55,
+  "h": 88,
+  "regX": 33,
+  "regY": 56
+ },
+ "vehicle.defender3.left.walk.2": {
+  "file": "vehicle.defender.left.walk.2.png",
+  "w": 55,
+  "h": 88,
+  "regX": 33,
+  "regY": 56
+ },
+ "vehicle.defender2.left.walk.3": {
+  "file": "vehicle.defender.left.walk.3.png",
+  "w": 63,
+  "h": 78,
+  "regX": 32,
+  "regY": 50
+ },
+ "vehicle.defender3.left.walk.3": {
+  "file": "vehicle.defender.left.walk.3.png",
+  "w": 63,
+  "h": 78,
+  "regX": 32,
+  "regY": 50
+ },
+ "vehicle.defender2.left.walk.4": {
+  "file": "vehicle.defender.left.walk.4.png",
+  "w": 55,
+  "h": 77,
+  "regX": 29,
+  "regY": 54
+ },
+ "vehicle.defender3.left.walk.4": {
+  "file": "vehicle.defender.left.walk.4.png",
+  "w": 55,
+  "h": 77,
+  "regX": 29,
+  "regY": 54
+ },
+ "vehicle.defender2.down.walk.2": {
+  "file": "vehicle.defender.down.walk.2.png",
+  "w": 49,
+  "h": 81,
+  "regX": 28,
+  "regY": 55
+ },
+ "vehicle.defender3.down.walk.2": {
+  "file": "vehicle.defender.down.walk.2.png",
+  "w": 49,
+  "h": 81,
+  "regX": 28,
+  "regY": 55
+ },
+ "vehicle.defender2.down.walk.1": {
+  "file": "vehicle.defender.down.walk.1.png",
+  "w": 49,
+  "h": 80,
+  "regX": 28,
+  "regY": 55
+ },
+ "vehicle.defender3.down.walk.1": {
+  "file": "vehicle.defender.down.walk.1.png",
+  "w": 49,
+  "h": 80,
+  "regX": 28,
+  "regY": 55
+ },
+ "vehicle.defender2.down.walk.3": {
+  "file": "vehicle.defender.down.walk.3.png",
+  "w": 49,
+  "h": 81,
+  "regX": 29,
+  "regY": 50
+ },
+ "vehicle.defender3.down.walk.3": {
+  "file": "vehicle.defender.down.walk.3.png",
+  "w": 49,
+  "h": 81,
+  "regX": 29,
+  "regY": 50
+ },
+ "vehicle.defender2.down.walk.4": {
+  "file": "vehicle.defender.down.walk.4.png",
+  "w": 43,
+  "h": 76,
+  "regX": 24,
+  "regY": 50
+ },
+ "vehicle.defender3.down.walk.4": {
+  "file": "vehicle.defender.down.walk.4.png",
+  "w": 43,
+  "h": 76,
+  "regX": 24,
+  "regY": 50
+ },
+ "vehicle.defender2.up.walk.1": {
+  "file": "vehicle.defender.up.walk.1.png",
+  "w": 49,
+  "h": 83,
+  "regX": 27,
+  "regY": 57
+ },
+ "vehicle.defender3.up.walk.1": {
+  "file": "vehicle.defender.up.walk.1.png",
+  "w": 49,
+  "h": 83,
+  "regX": 27,
+  "regY": 57
+ },
+ "vehicle.defender2.up.walk.2": {
+  "file": "vehicle.defender.up.walk.2.png",
+  "w": 50,
+  "h": 84,
+  "regX": 27,
+  "regY": 53
+ },
+ "vehicle.defender3.up.walk.2": {
+  "file": "vehicle.defender.up.walk.2.png",
+  "w": 50,
+  "h": 84,
+  "regX": 27,
+  "regY": 53
+ },
+ "vehicle.defender2.up.walk.3": {
+  "file": "vehicle.defender.up.walk.3.png",
+  "w": 48,
+  "h": 84,
+  "regX": 24,
+  "regY": 53
+ },
+ "vehicle.defender3.up.walk.3": {
+  "file": "vehicle.defender.up.walk.3.png",
+  "w": 48,
+  "h": 84,
+  "regX": 24,
+  "regY": 53
+ },
+ "vehicle.defender2.up.walk.4": {
+  "file": "vehicle.defender.up.walk.4.png",
+  "w": 44,
+  "h": 83,
+  "regX": 26,
+  "regY": 53
+ },
+ "vehicle.defender3.up.walk.4": {
+  "file": "vehicle.defender.up.walk.4.png",
+  "w": 44,
+  "h": 83,
+  "regX": 26,
+  "regY": 53
+ },
+ "vehicle.defender2.right.attack.1": {
+  "file": "vehicle.defender.right.attack.1.png",
+  "w": 50,
+  "h": 82,
+  "regX": 16,
+  "regY": 49
+ },
+ "vehicle.defender3.right.attack.1": {
+  "file": "vehicle.defender.right.attack.1.png",
+  "w": 50,
+  "h": 82,
+  "regX": 16,
+  "regY": 49
+ },
+ "vehicle.defender2.right.attack.2": {
+  "file": "vehicle.defender.right.attack.2.png",
+  "w": 50,
+  "h": 77,
+  "regX": 17,
+  "regY": 42
+ },
+ "vehicle.defender3.right.attack.2": {
+  "file": "vehicle.defender.right.attack.2.png",
+  "w": 50,
+  "h": 77,
+  "regX": 17,
+  "regY": 42
+ },
+ "vehicle.defender2.right.attack.3": {
+  "file": "vehicle.defender.right.attack.3.png",
+  "w": 50,
+  "h": 77,
+  "regX": 22,
+  "regY": 42
+ },
+ "vehicle.defender3.right.attack.3": {
+  "file": "vehicle.defender.right.attack.3.png",
+  "w": 50,
+  "h": 77,
+  "regX": 22,
+  "regY": 42
+ },
+ "vehicle.defender2.down.attack.1": {
+  "file": "vehicle.defender.down.attack.1.png",
+  "w": 52,
+  "h": 77,
+  "regX": 26,
+  "regY": 55
+ },
+ "vehicle.defender3.down.attack.1": {
+  "file": "vehicle.defender.down.attack.1.png",
+  "w": 52,
+  "h": 77,
+  "regX": 26,
+  "regY": 55
+ },
+ "vehicle.defender2.down.attack.2": {
+  "file": "vehicle.defender.down.attack.2.png",
+  "w": 54,
+  "h": 71,
+  "regX": 28,
+  "regY": 49
+ },
+ "vehicle.defender3.down.attack.2": {
+  "file": "vehicle.defender.down.attack.2.png",
+  "w": 54,
+  "h": 71,
+  "regX": 28,
+  "regY": 49
+ },
+ "vehicle.defender2.down.attack.3": {
+  "file": "vehicle.defender.down.attack.3.png",
+  "w": 54,
+  "h": 72,
+  "regX": 28,
+  "regY": 51
+ },
+ "vehicle.defender3.down.attack.3": {
+  "file": "vehicle.defender.down.attack.3.png",
+  "w": 54,
+  "h": 72,
+  "regX": 28,
+  "regY": 51
+ },
+ "vehicle.defender2.left.attack.1": {
+  "file": "vehicle.defender.left.attack.1.png",
+  "w": 49,
+  "h": 84,
+  "regX": 26,
+  "regY": 56
+ },
+ "vehicle.defender3.left.attack.1": {
+  "file": "vehicle.defender.left.attack.1.png",
+  "w": 49,
+  "h": 84,
+  "regX": 26,
+  "regY": 56
+ },
+ "vehicle.defender2.left.attack.2": {
+  "file": "vehicle.defender.left.attack.2.png",
+  "w": 50,
+  "h": 78,
+  "regX": 29,
+  "regY": 51
+ },
+ "vehicle.defender3.left.attack.2": {
+  "file": "vehicle.defender.left.attack.2.png",
+  "w": 50,
+  "h": 78,
+  "regX": 29,
+  "regY": 51
+ },
+ "vehicle.defender2.left.attack.3": {
+  "file": "vehicle.defender.left.attack.3.png",
+  "w": 50,
+  "h": 78,
+  "regX": 30,
+  "regY": 53
+ },
+ "vehicle.defender3.left.attack.3": {
+  "file": "vehicle.defender.left.attack.3.png",
+  "w": 50,
+  "h": 78,
+  "regX": 30,
+  "regY": 53
+ },
+ "vehicle.defender2.up.attack.1": {
+  "file": "vehicle.defender.up.attack.1.png",
+  "w": 53,
+  "h": 74,
+  "regX": 26,
+  "regY": 50
+ },
+ "vehicle.defender3.up.attack.1": {
+  "file": "vehicle.defender.up.attack.1.png",
+  "w": 53,
+  "h": 74,
+  "regX": 26,
+  "regY": 50
+ },
+ "vehicle.defender2.up.attack.2": {
+  "file": "vehicle.defender.up.attack.2.png",
+  "w": 53,
+  "h": 72,
+  "regX": 29,
+  "regY": 49
+ },
+ "vehicle.defender3.up.attack.2": {
+  "file": "vehicle.defender.up.attack.2.png",
+  "w": 53,
+  "h": 72,
+  "regX": 29,
+  "regY": 49
+ },
+ "vehicle.defender2.up.attack.3": {
+  "file": "vehicle.defender.up.attack.3.png",
+  "w": 53,
+  "h": 69,
+  "regX": 27,
+  "regY": 48
+ },
+ "vehicle.defender3.up.attack.3": {
+  "file": "vehicle.defender.up.attack.3.png",
+  "w": 53,
+  "h": 69,
+  "regX": 27,
+  "regY": 48
+ },
+ "vehicle.defender2.up": {
+  "file": "vehicle.defender.up.walk.1.png",
+  "w": 49,
+  "h": 83,
+  "regX": 27,
+  "regY": 57
+ },
+ "vehicle.defender3.up": {
+  "file": "vehicle.defender.up.walk.1.png",
+  "w": 49,
+  "h": 83,
+  "regX": 27,
+  "regY": 57
+ },
+ "vehicle.defender2.down": {
+  "file": "vehicle.defender.down.walk.1.png",
+  "w": 49,
+  "h": 80,
+  "regX": 28,
+  "regY": 55
+ },
+ "vehicle.defender3.down": {
+  "file": "vehicle.defender.down.walk.1.png",
+  "w": 49,
+  "h": 80,
+  "regX": 28,
+  "regY": 55
+ },
+ "vehicle.defender2.left": {
+  "file": "vehicle.defender.left.walk.1.png",
+  "w": 69,
+  "h": 84,
+  "regX": 39,
+  "regY": 56
+ },
+ "vehicle.defender3.left": {
+  "file": "vehicle.defender.left.walk.1.png",
+  "w": 69,
+  "h": 84,
+  "regX": 39,
+  "regY": 56
+ },
+ "vehicle.defender2.right": {
+  "file": "vehicle.defender.right.walk.1.png",
+  "w": 69,
+  "h": 77,
+  "regX": 34,
+  "regY": 51
+ },
+ "vehicle.defender3.right": {
+  "file": "vehicle.defender.right.walk.1.png",
+  "w": 69,
+  "h": 77,
+  "regX": 34,
+  "regY": 51
  }
 };

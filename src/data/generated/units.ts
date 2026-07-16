@@ -344,7 +344,7 @@ export const UNIT_DATA: UnitData = {
    "carries": 0,
    "shield": 1,
    "dig": false,
-   "push": false,
+   "push": true,
    "transplant": false,
    "waterversion": false,
    "attack": null,

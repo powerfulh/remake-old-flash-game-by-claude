@@ -47,13 +47,24 @@ html, body { height: 100%; overflow: hidden; background: #1a2430; color: #eee; f
 #unit-info .stats span {
   display: inline-block; width: 34px; color: #ffb74d; font-weight: bold; font-size: 11px;
 }
+#unit-info .stats.combat {
+  display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 4px 8px; margin-bottom: 8px;
+  background: rgba(229, 57, 53, .12); border: 1px solid #7d3030; border-radius: 6px;
+}
+#unit-info .stats.combat span { color: #ef9a9a; width: auto; margin-right: 4px; }
 .energy-bar { height: 10px; background: #333; border-radius: 5px; overflow: hidden; margin: 4px 0; }
 .energy-bar > div { height: 100%; background: #66bb6a; transition: width .2s; }
 .energy-bar > div.low { background: #ef5350; }
 #unit-info .carry { color: #ffcc80; font-size: 12px; margin-top: 4px; }
 
 #actions { display: flex; flex-direction: column; gap: 4px; }
-#actions button, #plans button, #banner button, #btn-menu, #menu button {
+#pause-overlay {
+  position: absolute; inset: 40px 0 0 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(4, 10, 18, .55); pointer-events: none; z-index: 15;
+  font-size: 32px; font-weight: bold; color: #ffd54f; text-shadow: 2px 2px 0 #000;
+}
+
+#actions button, #plans button, #banner button, #btn-menu, #btn-retry, #btn-pause, #menu button {
   background: #1565c0; color: #fff; border: 1px solid #0d47a1; border-radius: 6px;
   padding: 6px 10px; cursor: pointer; font-size: 13px;
 }
@@ -111,7 +122,7 @@ html, body { height: 100%; overflow: hidden; background: #1a2430; color: #eee; f
   position: fixed; display: none; max-width: 260px;
   background: rgba(8, 18, 28, .93); border: 1px solid #ffb300; border-radius: 8px;
   padding: 7px 11px; font-size: 12.5px; line-height: 1.55; color: #eee;
-  pointer-events: none; z-index: 20; white-space: nowrap;
+  pointer-events: none; z-index: 20;
 }
 #tile-tooltip b { color: #ffd54f; }
 
