@@ -1662,32 +1662,32 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "regY": 51
  },
  "vehicle.defender.up": {
-  "file": "vehicle.defender.up.png",
-  "w": 67,
-  "h": 75,
-  "regX": 33,
-  "regY": 49
+  "file": "vehicle.defender.up.walk.1.png",
+  "w": 49,
+  "h": 83,
+  "regX": 27,
+  "regY": 57
  },
  "vehicle.defender.down": {
-  "file": "vehicle.defender.down.png",
-  "w": 61,
-  "h": 71,
-  "regX": 30,
-  "regY": 47
+  "file": "vehicle.defender.down.walk.1.png",
+  "w": 49,
+  "h": 80,
+  "regX": 28,
+  "regY": 55
  },
  "vehicle.defender.left": {
-  "file": "vehicle.defender.left.png",
-  "w": 52,
-  "h": 75,
-  "regX": 26,
-  "regY": 49
+  "file": "vehicle.defender.left.walk.1.png",
+  "w": 69,
+  "h": 84,
+  "regX": 39,
+  "regY": 56
  },
  "vehicle.defender.right": {
-  "file": "vehicle.defender.right.png",
-  "w": 58,
-  "h": 82,
-  "regX": 29,
-  "regY": 53
+  "file": "vehicle.defender.right.walk.1.png",
+  "w": 69,
+  "h": 77,
+  "regX": 34,
+  "regY": 51
  },
  "monster.crab.up": {
   "file": "monster.crab.up.png",
