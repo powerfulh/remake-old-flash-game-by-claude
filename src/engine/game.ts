@@ -568,8 +568,8 @@ export class Game {
   /**
    * 에너지 기반 전투 (난수 없음):
    * - 피해 = max(0, 공격자 attack - 피격자 defense) 를 에너지에서 차감
-   * - 비전투 유닛(COMBAT_STATS 에 없는 유닛)이 맞으면 최대 에너지의 33% 차감
-   * - 에너지 0 이하 → 강제 분해 (에너지 브릭 충전량 0)
+   *   (비전투 유닛은 COMBAT_STATS 에 없으므로 방어력 0 으로 동일 로직)
+   * - 에너지 0 이하 → 강제 분해
    */
   private tickCombat(e: Entity, dt: number): void {
     const atk = e.def.attack;
@@ -601,10 +601,8 @@ export class Game {
 
     e.attackCd = 60 / atk.hitsPerMinute;
     e.dir = DIR_OF(Math.sign(target.x - e.x), Math.sign(target.y - e.y));
-    const targetStat = COMBAT_STATS[target.type];
-    const dmg = targetStat
-      ? Math.max(0, COMBAT_STATS[e.type].attack - targetStat.defense)
-      : CONFIG.nonCombatHitDrain;
+    const defense = COMBAT_STATS[target.type]?.defense ?? 0; // 비전투 유닛은 방어력 0
+    const dmg = Math.max(0, COMBAT_STATS[e.type].attack - defense);
     if (dmg <= 0) return; // 방어력이 공격력 이상이면 무피해
     target.energy -= dmg;
     target.lastHitAt = this.time;
@@ -614,10 +612,14 @@ export class Game {
     if (target.energy <= 0) this.destroy(target);
   }
 
-  /** 강제 분해: 에너지 고갈로 파괴 — 드랍되는 에너지 브릭은 잔량(0 이하면 0) */
+  /**
+   * 강제 분해: 에너지 고갈로 파괴.
+   * 플레이어 유닛의 에너지 브릭은 잔량(=0) 드랍, 몬스터는 예외적으로 풀충전 드랍.
+   */
   private destroy(e: Entity): void {
     e.dead = true;
-    this.level.addBricks(e.x, e.y, e.def.recipe, Math.max(0, e.energy));
+    const charge = e.cls === 'monster' ? CONFIG.maxEnergy : Math.max(0, e.energy);
+    this.level.addBricks(e.x, e.y, e.def.recipe, charge);
     this.effects.push({ x: e.x, y: e.y, kind: 'takeApart', t: 0 });
     if (e.cls !== 'monster') this.ev.unitLost(e.def.name || e.type);
     if (this.selected?.id === e.id) this.select(null);

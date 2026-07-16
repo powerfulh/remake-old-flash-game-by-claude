@@ -18,8 +18,6 @@ export const CONFIG = {
   fillRequiresDirt: true,
   /** 에너지 브릭 용량 (config energy 비용이 0~100 스케일). 전투도 에너지 기반 */
   maxEnergy: 100,
-  /** 비전투 유닛 피격 시 차감량 (최대 에너지의 33%) */
-  nonCombatHitDrain: 33,
   /** 몬스터 인접 공격 판정 거리 (타일, 체비쇼프) */
   attackAdjacency: 1,
 };
