@@ -522,7 +522,7 @@ export class Game {
     if (!e.def.recharges.length) return;
     for (const u of this.level.entities) {
       if (u.dead || u.id === e.id || !e.def.recharges.includes(u.type)) continue;
-      if (Math.max(Math.abs(u.x - e.x), Math.abs(u.y - e.y)) > 1) continue;
+      if (Math.abs(u.x - e.x) + Math.abs(u.y - e.y) > 1) continue; // 맨해튼 1 (직교 인접)
       if (u.energy < CONFIG.maxEnergy) {
         u.energy = Math.min(CONFIG.maxEnergy, u.energy + RECHARGE_RATE * dt);
         u.chargingAt = this.time;
@@ -630,12 +630,13 @@ export class Game {
         if (Math.abs(u.x - e.x) + Math.abs(u.y - e.y) <= CONFIG.attackAdjacency) { target = u; break; }
       }
     } else {
+      // 원거리 사거리도 맨해튼 거리로 통일 (다이아몬드형 범위)
       const explicit = e.attackTarget != null ? this.level.entities.find(t => t.id === e.attackTarget && !t.dead) : null;
-      if (explicit && Math.max(Math.abs(explicit.x - e.x), Math.abs(explicit.y - e.y)) <= atk.searchRange) target = explicit;
+      if (explicit && Math.abs(explicit.x - e.x) + Math.abs(explicit.y - e.y) <= atk.searchRange) target = explicit;
       if (!target) {
         for (const mtr of this.level.entities) {
           if (mtr.dead || mtr.cls !== 'monster' || mtr.type === 'boulder') continue;
-          if (Math.max(Math.abs(mtr.x - e.x), Math.abs(mtr.y - e.y)) <= atk.searchRange) { target = mtr; break; }
+          if (Math.abs(mtr.x - e.x) + Math.abs(mtr.y - e.y) <= atk.searchRange) { target = mtr; break; }
         }
       }
     }
