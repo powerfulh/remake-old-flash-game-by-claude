@@ -41,7 +41,7 @@ function isWorldUnlocked(world: number): boolean {
 }
 
 /** 현재 구현 완료된 월드 (이후 월드는 다음 단계에서 개방) */
-const IMPLEMENTED_WORLDS = 2;
+const IMPLEMENTED_WORLDS = 3;
 
 // ---------- 메뉴 ----------
 let currentWorld = 1;
