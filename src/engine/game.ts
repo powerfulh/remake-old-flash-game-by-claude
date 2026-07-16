@@ -65,13 +65,13 @@ export class Game {
 
   setMode(mode: ActionMode, sfx: SfxEvent = 'click_button'): void {
     playSfxEvent(sfx);
-    // 인접 액션은 사방+발밑이 전부 무효면 타일 선택을 생략하고 바로 안내
+    // 인접 액션은 맵 어디에도 유효 대상이 없으면 타일 선택을 생략하고 바로 안내.
+    // (자동 접근이 가능하므로 "주변 5칸" 이 아니라 맵 전체를 검사해야 함)
     if (this.selected && isAdjacentAction(mode.type)) {
       const e = this.selected;
-      const any = [[0, 0], [0, -1], [0, 1], [-1, 0], [1, 0]]
-        .some(([dx, dy]) => this.canActAt(e, mode.type as AdjacentAction, e.x + dx, e.y + dy));
-      if (!any) {
-        this.ev.toast(noTargetMessage(e, mode.type as AdjacentAction));
+      const action = mode.type as AdjacentAction;
+      if (!this.anyFeasibleTarget(e, action)) {
+        this.ev.toast(noTargetMessage(e, action));
         this.mode = { type: 'move' };
         this.ev.selectionChanged();
         return;
@@ -79,6 +79,21 @@ export class Game {
     }
     this.mode = mode;
     this.ev.selectionChanged();
+  }
+
+  /** 맵 전체에서 해당 능력을 쓸 수 있는 대상 칸이 하나라도 있는지 (위치 무관 조건) */
+  private anyFeasibleTarget(e: Entity, action: AdjacentAction): boolean {
+    const lv = this.level;
+    for (let y = 0; y < lv.h; y++) {
+      for (let x = 0; x < lv.w; x++) {
+        if (action === 'push') {
+          if (lv.entityAt(x, y)?.type === 'boulder' || lv.piles.has(lv.key(x, y))) return true;
+        } else if (this.canActAt(e, action, x, y)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /** 캔버스 셀 클릭 처리 */
@@ -737,20 +752,20 @@ function isAdjacentAction(t: string): t is AdjacentAction {
     || t === 'uproot' || t === 'plant' || t === 'push';
 }
 
-/** 사용 가능한 칸이 하나도 없을 때의 원인별 안내 문구 */
+/** 사용 가능한 대상이 맵에 하나도 없을 때의 원인별 안내 문구 */
 function noTargetMessage(e: Entity, action: AdjacentAction): string {
   switch (action) {
-    case 'pickup': return '주변에 집을 수 있는 브릭 더미가 없습니다';
-    case 'drop': return '주변에 내려놓을 수 있는 칸이 없습니다';
+    case 'pickup': return '집을 수 있는 브릭 더미가 없습니다';
+    case 'drop': return '내려놓을 수 있는 칸이 없습니다';
     case 'dig':
-      return e.hasDirt ? '이미 흙을 싣고 있습니다 — 먼저 FILL 하세요' : '주변에 팔 수 있는 땅이 없습니다';
+      return e.hasDirt ? '이미 흙을 싣고 있습니다 — 먼저 FILL 하세요' : '팔 수 있는 땅이 없습니다';
     case 'fill':
-      return e.hasDirt ? '주변에 메울 수 있는 물이 없습니다' : '먼저 DIG 로 흙을 퍼 와야 합니다';
+      return e.hasDirt ? '메울 수 있는 물이 없습니다' : '먼저 DIG 로 흙을 퍼 와야 합니다';
     case 'uproot':
-      return e.hasTree ? '이미 나무를 들고 있습니다 — 먼저 심으세요' : '주변에 뽑을 나무가 없습니다';
+      return e.hasTree ? '이미 나무를 들고 있습니다 — 먼저 심으세요' : '뽑을 나무가 없습니다';
     case 'plant':
-      return e.hasTree ? '주변에 심을 수 있는 칸이 없습니다' : '심을 나무가 없습니다 — 먼저 나무를 뽑으세요';
+      return e.hasTree ? '심을 수 있는 칸이 없습니다' : '심을 나무가 없습니다 — 먼저 나무를 뽑으세요';
     case 'push':
-      return '주변에 밀 수 있는 바위나 브릭 더미가 없습니다 (밀려날 자리도 비어 있어야 합니다)';
+      return '밀 수 있는 바위나 브릭 더미가 없습니다';
   }
 }
