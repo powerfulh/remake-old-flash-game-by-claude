@@ -238,8 +238,9 @@ export class Game {
       case 'drop':
         return brickTotal(e.carrying) > 0 && t !== 'mountain' && t !== 'tree' && t !== 'volcano';
       case 'dig':
+        // 브릭 더미가 있어도 굴착 가능 (더미는 물 위에 남는다)
         return e.def.dig && !e.hasDirt && (t === 'normal' || t === 'swamp')
-          && !lv.entityAt(x, y) && !lv.piles.has(k) && e.energy >= (e.def.energy.dig ?? 1);
+          && !lv.entityAt(x, y) && e.energy >= (e.def.energy.dig ?? 1);
       case 'fill':
         return e.def.dig && (t === 'water' || t === 'whirl')
           && (!CONFIG.fillRequiresDirt || e.hasDirt)
@@ -300,7 +301,7 @@ export class Game {
     const lv = this.level;
     if (lv.terrainAt(x, y) !== 'normal' && lv.terrainAt(x, y) !== 'swamp') { this.ev.toast('팔 수 없는 지형입니다'); return; }
     if (e.hasDirt) { this.ev.toast('이미 흙을 싣고 있습니다 — 먼저 FILL 하세요'); return; }
-    if (lv.entityAt(x, y) || lv.piles.has(lv.key(x, y))) { this.ev.toast('비어 있는 칸이어야 합니다'); return; }
+    if (lv.entityAt(x, y)) { this.ev.toast('유닛이 있는 칸은 팔 수 없습니다'); return; }
     if (!this.spend(e, 'dig')) return;
     lv.terrain[y][x] = 'water';
     e.hasDirt = true;
@@ -376,6 +377,11 @@ export class Game {
     const lv = this.level;
     // 분해된 에너지 브릭은 유닛의 현재 에너지를 그대로 유지
     lv.addBricks(e.x, e.y, e.def.recipe, e.energy);
+    // 적재 중이던 브릭도 그 자리에 함께 드랍
+    if (brickTotal(e.carrying) > 0) {
+      lv.addBricks(e.x, e.y, e.carrying, e.carryCharge);
+      e.carrying = {};
+    }
     e.dead = true;
     this.effects.push({ x: e.x, y: e.y, kind: 'takeApart', t: 0 });
     if (this.selected?.id === e.id) this.select(null);
@@ -725,6 +731,11 @@ export class Game {
     e.dead = true;
     const charge = e.cls === 'monster' ? CONFIG.maxEnergy : Math.max(0, e.energy);
     this.level.addBricks(e.x, e.y, e.def.recipe, charge);
+    // 적재 중이던 브릭도 그 자리에 함께 드랍
+    if (brickTotal(e.carrying) > 0) {
+      this.level.addBricks(e.x, e.y, e.carrying, e.carryCharge);
+      e.carrying = {};
+    }
     this.effects.push({ x: e.x, y: e.y, kind: 'takeApart', t: 0 });
     if (e.cls !== 'monster') this.ev.unitLost(e.def.name || e.type);
     if (this.selected?.id === e.id) this.select(null);
