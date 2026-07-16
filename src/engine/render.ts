@@ -40,11 +40,16 @@ export function cellAnchor(x: number, y: number): [number, number] {
   return [x * STEP_X - y * SHEAR, y * STEP_Y];
 }
 
-/** 화면 좌표 → 셀 좌표 */
+/**
+ * 화면 좌표 → 셀 좌표.
+ * 타일 좌우 경계는 행 내부에서도 연속적으로 기울어 있으므로(0.5px/px, SHEAR = STEP_Y/2),
+ * 행별 고정 시어가 아니라 wy 전체에 비례한 시어를 적용해야
+ * 그려지는 평행사변형과 판정 경계가 정확히 일치한다.
+ */
 export function pickCell(sx: number, sy: number, cam: Camera): [number, number] {
   const wx = sx + cam.x, wy = sy + cam.y;
   const y = Math.floor(wy / STEP_Y);
-  const x = Math.floor((wx + SHEAR * y) / STEP_X);
+  const x = Math.floor((wx + wy * (SHEAR / STEP_Y)) / STEP_X);
   return [x, y];
 }
 
