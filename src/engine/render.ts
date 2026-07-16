@@ -1,5 +1,5 @@
 import { CELL_CX, CELL_CY, SHEAR, STEP_X, STEP_Y } from './const';
-import { drawSprite, drawSpriteCentered, hasSprite } from './assets';
+import { drawSprite, drawSpriteBottomCentered, drawSpriteCentered, hasSprite } from './assets';
 import {
   drawActionArrow, drawActionMiddle, drawActionNegative, drawBonusStar, drawGoalMark,
 } from './customSprites';
@@ -162,7 +162,11 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
           ctx.stroke();
         }
         const name = unitSpriteName(e, onWater, time);
-        if (!drawSprite(ctx, name, ex, ey)) {
+        // 건물 본체 스프라이트는 등록점이 어긋나 있어 바닥 중심 정렬로 그린다
+        const drawn = e.cls === 'building'
+          ? drawSpriteBottomCentered(ctx, name, ex, ey + 18)
+          : drawSprite(ctx, name, ex, ey);
+        if (!drawn) {
           ctx.fillStyle = e.cls === 'monster' ? '#e53935' : '#fff';
           ctx.fillRect(ex - 8, ey - 8, 16, 16);
         }

@@ -93,3 +93,12 @@ export function drawSpriteCentered(ctx: CanvasRenderingContext2D, name: string, 
   ctx.drawImage(img, Math.round(cx - info.w / 2), Math.round(cy - info.h / 2));
   return true;
 }
+
+/** 가로 중앙 + 하단 기준 정렬 — 등록점이 어긋난 건물 스프라이트용 */
+export function drawSpriteBottomCentered(ctx: CanvasRenderingContext2D, name: string, cx: number, bottomY: number): boolean {
+  const info = SPRITE_MANIFEST[name];
+  const img = images.get(name);
+  if (!info || !img) return false;
+  ctx.drawImage(img, Math.round(cx - info.w / 2), Math.round(bottomY - info.h));
+  return true;
+}
