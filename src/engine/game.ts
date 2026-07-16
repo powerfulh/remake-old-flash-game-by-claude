@@ -165,14 +165,17 @@ export class Game {
     const k = lv.key(x, y);
     switch (action) {
       case 'push': {
-        // dozer: 바위(boulder) 또는 브릭 더미를 유닛 반대 방향으로 한 칸 밀기
+        // dozer: 바위(boulder) 또는 브릭 더미를 유닛 반대 방향으로 한 칸 밀기.
+        // 바위는 물로도 밀 수 있다 (가라앉음 — 물 위의 boulder 골 달성 수단)
         if (!e.def.push || e.energy < (e.def.energy.push ?? 1)) return false;
         const dx = x - e.x, dy = y - e.y;
         if (Math.abs(dx) + Math.abs(dy) !== 1) return false;
         const nx = x + dx, ny = y + dy;
         const target = lv.entityAt(x, y);
         if (target && target.type === 'boulder') {
-          return lv.passableFor(target, nx, ny) && !lv.piles.has(lv.key(nx, ny));
+          if (lv.entityAt(nx, ny) || lv.piles.has(lv.key(nx, ny))) return false;
+          const nt = lv.terrainAt(nx, ny);
+          return !!nt && (target.def.terrain.includes(nt) || nt === 'water' || nt === 'reef' || nt === 'whirl');
         }
         if (lv.piles.has(k)) {
           const nt = lv.terrainAt(nx, ny);
@@ -451,6 +454,21 @@ export class Game {
         e.path = [];
       }
       this.checkGoals(e);
+      return;
+    }
+    // 몬스터 도착 훅
+    // 1) 몬스터를 타깃으로 하는 골 (예: 4-6 gator 골 — 몬스터를 골 지점으로 유인)
+    for (const g of lv.goals) {
+      if (!g.done && g.x === e.x && g.y === e.y && g.target === e.type) this.completeGoal(g);
+    }
+    // 2) 물로 밀린 바위는 가라앉는다 (골 판정은 doPush 에서 이미 처리)
+    if (e.type === 'boulder') {
+      const t = lv.terrainAt(e.x, e.y);
+      if (t === 'water' || t === 'reef' || t === 'whirl') {
+        e.dead = true;
+        this.effects.push({ x: e.x, y: e.y, kind: 'takeApart', t: 0 });
+        playSfxEvent('fill_ground');
+      }
     }
   }
 
