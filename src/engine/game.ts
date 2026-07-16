@@ -220,6 +220,11 @@ export class Game {
       if (space <= 0) break;
       const take = Math.min(n ?? 0, space);
       if (take <= 0) continue;
+      if (c === 'energy') {
+        // 운반 중 에너지 브릭 충전량은 수량 가중 평균으로 합산
+        const carriedE = e.carrying.energy ?? 0;
+        e.carryCharge = (e.carryCharge * carriedE + pile.energyCharge * take) / (carriedE + take);
+      }
       pile.bricks[c as keyof Bricks] = (n ?? 0) - take;
       e.carrying[c as keyof Bricks] = (e.carrying[c as keyof Bricks] ?? 0) + take;
       space -= take;
@@ -234,7 +239,7 @@ export class Game {
     if (brickTotal(e.carrying) === 0) { this.ev.toast('운반 중인 브릭이 없습니다'); return; }
     const t = this.level.terrainAt(x, y);
     if (!t || t === 'mountain' || t === 'tree' || t === 'volcano') { this.ev.toast('여기엔 내려놓을 수 없습니다'); return; }
-    this.level.addBricks(x, y, e.carrying);
+    this.level.addBricks(x, y, e.carrying, e.carryCharge);
     e.carrying = {};
     playSfxEvent('drop');
     this.ev.selectionChanged();
@@ -319,7 +324,8 @@ export class Game {
 
   takeApart(e: Entity): void {
     const lv = this.level;
-    lv.addBricks(e.x, e.y, e.def.recipe);
+    // 분해된 에너지 브릭은 유닛의 현재 에너지를 그대로 유지
+    lv.addBricks(e.x, e.y, e.def.recipe, e.energy);
     e.dead = true;
     this.effects.push({ x: e.x, y: e.y, kind: 'takeApart', t: 0 });
     if (this.selected?.id === e.id) this.select(null);
@@ -366,7 +372,8 @@ export class Game {
     }
     const cells: string[] = [];
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) cells.push(lv.key(x + dx, y + dy));
-    // 소모
+    // 소모 — 사용한 에너지 브릭의 충전량이 새 유닛의 시작 에너지가 된다
+    let energyTaken = 0, energyChargeSum = 0;
     for (const [c, needRaw] of Object.entries(def.recipe)) {
       let need = needRaw ?? 0;
       for (const k of cells) {
@@ -376,6 +383,7 @@ export class Game {
         const have = p.bricks[c as keyof Bricks] ?? 0;
         const take = Math.min(have, need);
         if (take > 0) {
+          if (c === 'energy') { energyTaken += take; energyChargeSum += p.energyCharge * take; }
           p.bricks[c as keyof Bricks] = have - take;
           if (!p.bricks[c as keyof Bricks]) delete p.bricks[c as keyof Bricks];
           need -= take;
@@ -387,6 +395,7 @@ export class Game {
     if (plan.uses <= 0) lv.planInv.splice(planIdx, 1);
     const cls = UNITKIND(plan.unit);
     const e = lv.spawn(cls, plan.unit, x, y);
+    if (e && energyTaken > 0) e.energy = energyChargeSum / energyTaken;
     this.effects.push({ x, y, kind: 'build', t: 0 });
     playSfxEvent('assembly');
     this.ev.plansChanged();
@@ -577,13 +586,18 @@ export class Game {
     const dmg = (lo + Math.random() * (hi - lo)) * target.def.shield;
     target.hp -= dmg;
     playSfxEvent(e.cls === 'monster' ? 'monster_attack' : 'damage');
-    if (target.hp <= 0) this.destroy(target);
+    if (target.hp <= 0) this.destroy(target, e.cls === 'monster');
   }
 
-  private destroy(e: Entity): void {
+  private destroy(e: Entity, byMonster = false): void {
     e.dead = true;
-    // 파괴 시 레시피 브릭 드랍 (원본: 몬스터가 유닛을 분해)
-    this.level.addBricks(e.x, e.y, e.def.recipe);
+    // 파괴 시 레시피 브릭 드랍 (원본: 몬스터가 유닛을 분해).
+    // 몬스터에게 파괴당한 유닛의 에너지 브릭은 최대치의 1/3 이 깎인다
+    // (원작은 전부 드레인 — 밸런스 조정).
+    const charge = byMonster && e.cls !== 'monster'
+      ? Math.max(0, e.energy - CONFIG.maxEnergy / 3)
+      : e.energy;
+    this.level.addBricks(e.x, e.y, e.def.recipe, charge);
     this.effects.push({ x: e.x, y: e.y, kind: 'takeApart', t: 0 });
     if (e.cls !== 'monster') this.ev.unitLost(e.def.name || e.type);
     if (this.selected?.id === e.id) this.select(null);

@@ -23,6 +23,8 @@ export interface Entity {
   energy: number;
   hp: number;
   carrying: Bricks;
+  /** 운반 중인 에너지 브릭의 충전량 (0~100) */
+  carryCharge: number;
   hasDirt: boolean;
   hasTree: boolean;
   /** 공격 쿨다운(초) */
@@ -45,7 +47,11 @@ export interface Goal {
 
 export interface PlanInv { unit: string; uses: number; }
 
-export interface Pile { bricks: Bricks; }
+export interface Pile {
+  bricks: Bricks;
+  /** 더미 안 에너지 브릭의 충전량 (0~100, 없으면 의미 없음) */
+  energyCharge: number;
+}
 
 let nextId = 1;
 
@@ -140,7 +146,7 @@ export class LevelState {
       id: nextId++, cls, type, def, x, y, dir: 'down',
       fromX: x, fromY: y, moveT: 1, moving: false, path: [],
       energy: CONFIG.maxEnergy, hp: CONFIG.maxHp,
-      carrying: {}, hasDirt: false, hasTree: false,
+      carrying: {}, carryCharge: CONFIG.maxEnergy, hasDirt: false, hasTree: false,
       attackCd: 0, attackTarget: null,
       restTimer: 0, resting: false, wanderCd: Math.random() * 2, dead: false,
     };
@@ -171,9 +177,15 @@ export class LevelState {
     return this.terrainAt(x, y) === 'swamp' ? 7 : 1; // 늪 경로 페널티 (config swamp_path_penalty=6)
   }
 
-  addBricks(x: number, y: number, bricks: Bricks): void {
+  /** 브릭 추가. energyCharge 는 추가되는 에너지 브릭의 충전량 — 기존 브릭과 수량 가중 평균으로 합산 */
+  addBricks(x: number, y: number, bricks: Bricks, energyCharge = CONFIG.maxEnergy): void {
     const k = this.key(x, y);
-    const pile = this.piles.get(k) ?? { bricks: {} };
+    const pile = this.piles.get(k) ?? { bricks: {}, energyCharge: CONFIG.maxEnergy };
+    const incomingE = bricks.energy ?? 0;
+    if (incomingE > 0) {
+      const existingE = pile.bricks.energy ?? 0;
+      pile.energyCharge = (pile.energyCharge * existingE + energyCharge * incomingE) / (existingE + incomingE);
+    }
     for (const [c, n] of Object.entries(bricks)) {
       if (!n) continue;
       pile.bricks[c as keyof Bricks] = (pile.bricks[c as keyof Bricks] ?? 0) + n;

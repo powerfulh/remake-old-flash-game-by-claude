@@ -145,7 +145,7 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
       const [px, py] = k.split(',').map(Number);
       if (py !== y) continue;
       const [ax, ay] = cellAnchor(px, py);
-      drawPile(ctx, pile.bricks, ax + CELL_CX, ay + CELL_CY);
+      drawPile(ctx, pile, ax + CELL_CX, ay + CELL_CY);
     }
     // 3) 엔티티
     const ents = entByRow.get(y);
@@ -258,7 +258,8 @@ function drawCarriedBricks(ctx: CanvasRenderingContext2D, e: Entity, ex: number,
   items.forEach((c, i) => {
     const dx = (i % 3 - 1) * 11;
     const dy = -20 - Math.floor(i / 3) * 8;
-    drawSprite(ctx, `carry.${c}`, ex + dx, ey + dy);
+    const name = c === 'energy' ? `carry.energy${energyState(e.carryCharge)}` : `carry.${c}`;
+    drawSprite(ctx, name, ex + dx, ey + dy);
   });
 }
 
@@ -379,8 +380,14 @@ function drawBuildRange(ctx: CanvasRenderingContext2D, cx: number, cy: number, o
   ctx.restore();
 }
 
-function drawPile(ctx: CanvasRenderingContext2D, bricks: Record<string, number | undefined>, cx: number, cy: number): void {
+/** 에너지 브릭 상태 접미사 — 원작 config energy_bricks=1,80 임계값 */
+export function energyState(charge: number): '' | '_low' | '_dead' {
+  return charge < 1 ? '_dead' : charge < 80 ? '_low' : '';
+}
+
+function drawPile(ctx: CanvasRenderingContext2D, pile: import('./level').Pile, cx: number, cy: number): void {
   // 색상별로 작게 분산 배치, 수량에 따라 스프라이트 크기 단계 선택
+  const bricks = pile.bricks as Record<string, number | undefined>;
   const entries = Object.entries(bricks).filter(([, n]) => (n ?? 0) > 0);
   let i = 0;
   for (const [color, n] of entries) {
@@ -388,7 +395,7 @@ function drawPile(ctx: CanvasRenderingContext2D, bricks: Record<string, number |
     const off = entries.length > 1 ? [(i % 2) * 14 - 7, Math.floor(i / 2) * 8 - 4] : [0, 0];
     let name: string;
     if (color === 'wheel') name = 'resource.wheel';
-    else if (color === 'energy') name = 'resource.energy';
+    else if (color === 'energy') name = `resource.energy${energyState(pile.energyCharge)}`;
     else name = `resource.${color}.${count >= 10 ? 4 : count >= 6 ? 3 : count >= 3 ? 2 : 1}`;
     if (!drawSprite(ctx, name, cx + off[0], cy + off[1])) {
       ctx.fillStyle = { red: '#e53935', yellow: '#fdd835', blue: '#1e88e5', green: '#43a047', wheel: '#555', energy: '#8bc34a' }[color] ?? '#999';

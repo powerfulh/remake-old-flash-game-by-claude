@@ -178,7 +178,9 @@ export class Hud {
       if (pile) {
         const parts = Object.entries(pile.bricks)
           .filter(([, n]) => (n ?? 0) > 0)
-          .map(([c, n]) => `${BRICK_KO[c] ?? c}×${n}`);
+          .map(([c, n]) => c === 'energy' && pile.energyCharge < 100
+            ? `${BRICK_KO[c]}×${n} (충전 ${Math.round(pile.energyCharge)}%)`
+            : `${BRICK_KO[c] ?? c}×${n}`);
         if (parts.length) lines.push(`<b>🧱 브릭 더미</b> — ${parts.join(', ')}`);
       }
     }
