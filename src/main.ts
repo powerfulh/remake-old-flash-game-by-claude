@@ -169,6 +169,17 @@ function startMission(def: LevelDef): void {
         g.setMode(g.mode.type === action ? { type: 'move' } : { type: action });
       }
     }
+    // 단축키 1~9: 플랜 슬롯 조립 모드 토글 (10번째 이후 플랜은 클릭 전용)
+    if (e.key >= '1' && e.key <= '9' && !e.repeat) {
+      const idx = Number(e.key) - 1;
+      if (g.level.planInv[idx]) {
+        const cur = g.mode;
+        g.setMode(
+          cur.type === 'build' && cur.planIdx === idx ? { type: 'move' } : { type: 'build', planIdx: idx },
+          'click_plan',
+        );
+      }
+    }
   };
   window.onkeyup = e => keys.delete(e.key);
 

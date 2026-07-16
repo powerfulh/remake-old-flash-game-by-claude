@@ -101,7 +101,8 @@ export class Hud {
     }
     inv.forEach((p, i) => {
       const b = document.createElement('button');
-      b.textContent = `${p.unit} ×${p.uses} 조립`;
+      // 1~9번 슬롯은 숫자키 단축키 표시
+      b.textContent = `${i < 9 ? `${i + 1}. ` : ''}${p.unit} ×${p.uses} 조립`;
       const mode = this.game.mode;
       if (mode.type === 'build' && mode.planIdx === i) b.classList.add('active');
       b.onclick = () => {
