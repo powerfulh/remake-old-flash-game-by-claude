@@ -405,7 +405,8 @@ export class Game {
     playSfxEvent('assembly');
     this.ev.plansChanged();
     this.ev.selectionChanged();
-    if (e) this.checkGoals(e);
+    // 이동 도착과 동일한 훅: 그 칸의 플랜 획득, 소용돌이 워프, 골 판정
+    if (e) this.onArrive(e);
   }
 
   // ---------- 진행/골 ----------
