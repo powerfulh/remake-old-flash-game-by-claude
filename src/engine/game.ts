@@ -501,7 +501,9 @@ export class Game {
       return;
     }
     if (!e.path.length) return;
-    if (e.energy <= 0) { e.path = []; return; }
+    // 몬스터는 이동 에너지를 소모하지 않는다 (에너지 = 전투 자원 전용)
+    const isMonster = e.cls === 'monster';
+    if (!isMonster && e.energy <= 0) { e.path = []; return; }
     const next = e.path[0];
     if (!this.level.passableFor(e, next.x, next.y)) {
       // 막히면 재탐색
@@ -513,9 +515,11 @@ export class Game {
       return;
     }
     e.path.shift();
-    const cost = e.def.energy.move ?? 1;
-    if (e.energy < cost) { e.path = []; return; }
-    e.energy -= cost;
+    if (!isMonster) {
+      const cost = e.def.energy.move ?? 1;
+      if (e.energy < cost) { e.path = []; return; }
+      e.energy -= cost;
+    }
     e.fromX = e.x; e.fromY = e.y;
     e.dir = DIR_OF(next.x - e.x, next.y - e.y);
     e.x = next.x; e.y = next.y;
