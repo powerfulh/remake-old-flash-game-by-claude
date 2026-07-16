@@ -165,6 +165,7 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
           ctx.fillStyle = e.cls === 'monster' ? '#e53935' : '#fff';
           ctx.fillRect(ex - 8, ey - 8, 16, 16);
         }
+        if (e.cls !== 'monster') drawCarriedBricks(ctx, e, ex, ey);
         // 몬스터 휴식 표시
         if (e.cls === 'monster' && e.resting && e.type !== 'boulder') {
           ctx.fillStyle = 'rgba(255,255,255,.85)';
@@ -210,6 +211,22 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
   }
 
   ctx.restore();
+}
+
+/**
+ * 적재물 표시 (원본 carry.* 스프라이트) — 운반 중인 브릭을 유닛 위에 쌓아 그린다.
+ * 3개씩 한 줄로 위로 쌓고, 6개까지만 표시 (초과분은 HUD 적재 표기로 확인).
+ */
+function drawCarriedBricks(ctx: CanvasRenderingContext2D, e: Entity, ex: number, ey: number): void {
+  const items: string[] = [];
+  for (const [c, n] of Object.entries(e.carrying)) {
+    for (let i = 0; i < (n ?? 0) && items.length < 6; i++) items.push(c);
+  }
+  items.forEach((c, i) => {
+    const dx = (i % 3 - 1) * 11;
+    const dy = -20 - Math.floor(i / 3) * 8;
+    drawSprite(ctx, `carry.${c}`, ex + dx, ey + dy);
+  });
 }
 
 /** 이동 계획 표시 — 유닛의 현재 위치에서 남은 경로의 타일 중심을 잇는 반투명 선 */
