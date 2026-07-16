@@ -565,7 +565,8 @@ export class Game {
     if (e.cls === 'monster') {
       for (const u of this.level.entities) {
         if (u.dead || u.cls === 'monster') continue;
-        if (Math.max(Math.abs(u.x - e.x), Math.abs(u.y - e.y)) <= CONFIG.attackAdjacency) { target = u; break; }
+        // 근접 공격은 상하좌우 인접만 (이동이 4방향이므로 "접촉" = 직교 인접)
+        if (Math.abs(u.x - e.x) + Math.abs(u.y - e.y) <= CONFIG.attackAdjacency) { target = u; break; }
       }
     } else {
       const explicit = e.attackTarget != null ? this.level.entities.find(t => t.id === e.attackTarget && !t.dead) : null;
