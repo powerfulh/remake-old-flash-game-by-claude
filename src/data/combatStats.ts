@@ -13,6 +13,14 @@ export interface CombatStat {
   defense: number;
 }
 
+/**
+ * 늪 지형 데미지 — 원작 config `#swamp=[#damage:50.0, #period:0.7]` 를
+ * 에너지 전투 체계 비율로 환산 (원작 늪 DPS ≈ 원작 크랩 DPS 였으므로 크랩 기준 스케일).
+ * 방어력이 적용되므로 defender류(방20)는 면역 — 원작의 "로봇만 늪을 잘 건넌다" 설계 재현.
+ * 플레이어 유닛에게만 적용 (몬스터는 늪 서식이라 면역).
+ */
+export const SWAMP_HAZARD = { damage: 9, period: 0.7 };
+
 export const COMBAT_STATS: Record<string, CombatStat> = {
   // ----- 플레이어 전투 유닛 -----
   defender: { attack: 24, defense: 20 },

@@ -1,5 +1,5 @@
 import type { Bricks, LevelDef } from '../data/types';
-import { COMBAT_STATS } from '../data/combatStats';
+import { COMBAT_STATS, SWAMP_HAZARD } from '../data/combatStats';
 import { UNIT_DATA } from './../data/generated/units';
 import { CONFIG } from './const';
 import { brickTotal, Entity, LevelState, unitDefOf } from './level';
@@ -492,6 +492,28 @@ export class Game {
       if (e.dead) continue;
       this.tickCombat(e, dt);
       this.tickRecharge(e, dt);
+    }
+    this.tickSwamp(dt);
+  }
+
+  private swampTimer = 0;
+
+  /** 늪 지형 데미지 (원작 #swamp 정의) — period 마다 늪 위의 플레이어 유닛에 적용 */
+  private tickSwamp(dt: number): void {
+    this.swampTimer += dt;
+    while (this.swampTimer >= SWAMP_HAZARD.period) {
+      this.swampTimer -= SWAMP_HAZARD.period;
+      for (const e of this.level.entities) {
+        if (e.dead || e.cls === 'monster') continue;
+        if (this.level.terrainAt(e.x, e.y) !== 'swamp') continue;
+        const dmg = Math.max(0, SWAMP_HAZARD.damage - (COMBAT_STATS[e.type]?.defense ?? 0));
+        if (dmg <= 0) continue;
+        e.energy -= dmg;
+        e.lastHitAt = this.time;
+        this.effects.push({ x: e.x, y: e.y, kind: 'damage', t: 0 });
+        if (this.selected?.id === e.id) this.ev.selectionChanged();
+        if (e.energy <= 0) this.destroy(e);
+      }
     }
   }
 
