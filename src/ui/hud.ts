@@ -28,6 +28,8 @@ export class Hud {
     this.cb = cb;
     $('btn-menu').onclick = () => this.cb.onExit();
     $('btn-retry').onclick = () => { playSfxEvent('click_button'); this.cb.onRetry(); };
+    $('btn-pause').onclick = () => this.togglePause();
+    this.updatePauseUi();
     this.refreshAll();
   }
 
@@ -155,6 +157,24 @@ export class Hud {
         wrap.appendChild(recipe);
       }
     }
+  }
+
+  togglePause(): void {
+    this.game.paused = !this.game.paused;
+    playSfxEvent('click_button');
+    this.updatePauseUi();
+  }
+
+  private updatePauseUi(): void {
+    $('btn-pause').textContent = this.game.paused ? '계속 (P)' : '일시정지 (P)';
+    let overlay = document.getElementById('pause-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'pause-overlay';
+      overlay.innerHTML = '<div>⏸ 일시정지</div>';
+      $('hud').appendChild(overlay);
+    }
+    overlay.classList.toggle('hidden', !this.game.paused);
   }
 
   /** 호버 타일 툴팁: 골 → 도달 유닛, 자원 더미 → 구성 */

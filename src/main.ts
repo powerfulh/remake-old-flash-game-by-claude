@@ -168,6 +168,7 @@ function startMission(def: LevelDef): void {
   canvas.onmouseup = e => {
     dragging = false;
     if (movedPx > 6) return; // 드래그였음
+    if (g.paused) return;    // 일시정지 중에는 게임 명령 차단 (카메라 이동은 허용)
     const rect = canvas.getBoundingClientRect();
     const [cx, cy] = pickCell(e.clientX - rect.left, e.clientY - rect.top, cam);
     g.clickCell(cx, cy);
@@ -185,7 +186,9 @@ function startMission(def: LevelDef): void {
       const key = e.key.toLowerCase();
       const toggle = (action: 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant' | 'push' | 'attack') =>
         g.setMode(g.mode.type === action ? { type: 'move' } : { type: action });
+      if (key === 'p') { hud?.togglePause(); return; }
       if (key === 'r') { restart(); return; }
+      if (g.paused) return; // 일시정지 중에는 능력/플랜 단축키 차단
       if (sel && sel.cls === 'unit') {
         if (key === ' ') {
           e.preventDefault();
