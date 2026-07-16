@@ -34,6 +34,15 @@ function isUnlocked(world: number, mission: number): boolean {
     && progress.done[`${world}.${l.mission}`]?.goal);
 }
 
+/** 월드 해금: 이전 월드 미션 12 클리어 (unlocks 의 13 = 다음 월드) */
+function isWorldUnlocked(world: number): boolean {
+  if (world === 1 || progress.unlockAll) return true;
+  return !!progress.done[`${world - 1}.12`]?.goal;
+}
+
+/** 현재 구현 완료된 월드 (이후 월드는 다음 단계에서 개방) */
+const IMPLEMENTED_WORLDS = 2;
+
 // ---------- 메뉴 ----------
 let currentWorld = 1;
 
@@ -49,8 +58,8 @@ function showMenu(): void {
   tabs.className = 'world-tabs';
   for (let w = 1; w <= 5; w++) {
     const b = document.createElement('button');
-    b.textContent = `월드 ${w}`;
-    b.disabled = w !== 1; // 1단계: 월드 1만 활성 (나머지는 5단계에서)
+    b.textContent = `월드 ${w}${w <= IMPLEMENTED_WORLDS && !isWorldUnlocked(w) ? ' 🔒' : ''}`;
+    b.disabled = w > IMPLEMENTED_WORLDS || !isWorldUnlocked(w);
     if (w === currentWorld) b.style.background = '#ff8f00';
     b.onclick = () => { currentWorld = w; showMenu(); };
     tabs.appendChild(b);

@@ -99,6 +99,7 @@ export class Hud {
     if (carry > 0) btn('내려놓기 (Q)', { type: 'drop' });
     if (e.def.dig) { btn('땅 파기 (DIG)', { type: 'dig' }); btn('메우기 (FILL)', { type: 'fill' }); }
     if (e.def.transplant) { btn('나무 뽑기', { type: 'uproot' }); btn('나무 심기', { type: 'plant' }); }
+    if (e.def.push) btn('밀기 (PUSH)', { type: 'push' });
     if (e.def.attack) btn('공격', { type: 'attack' });
     btn('분해하기 (E)', null, () => this.game.takeApart(e));
   }

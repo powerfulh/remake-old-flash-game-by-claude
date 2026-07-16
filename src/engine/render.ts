@@ -295,7 +295,7 @@ function drawPlannedPaths(ctx: CanvasRenderingContext2D, game: Game): void {
   }
 }
 
-const ADJACENT_ACTIONS = new Set(['pickup', 'drop', 'dig', 'fill', 'uproot', 'plant']);
+const ADJACENT_ACTIONS = new Set(['pickup', 'drop', 'dig', 'fill', 'uproot', 'plant', 'push']);
 // 사선 투영에서 각 그리드 방향의 화면 벡터: +x=(51,0), +y=(-24,54)
 const ARROW_DIRS = [
   { dx: 0, dy: -1, angle: Math.atan2(-STEP_Y, SHEAR) },
@@ -314,7 +314,7 @@ function drawActionArrows(ctx: CanvasRenderingContext2D, game: Game, time: numbe
   const sel = game.selected;
   const mode = game.mode.type;
   if (!sel || !ADJACENT_ACTIONS.has(mode)) return;
-  const action = mode as 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant';
+  const action = mode as import('./game').AdjacentAction;
   const lv = game.level;
   const bob = Math.sin(time * 5) * 2;
   for (const { dx, dy, angle } of ARROW_DIRS) {
