@@ -661,16 +661,15 @@ export class Game {
         (px, py) => this.level.passableFor(m, px, py),
         (px, py) => this.level.terrainAt(px, py) === 'swamp' ? 2 : 1); // 추적 시 늪 페널티 1
       if (p) { m.path = p.slice(0, 2); return; }
+      // 타깃까지 경로가 없으면(도달 불가) 배회로 폴백 — 제자리에 얼어붙지 않도록
     }
-    if (!target) {
-      // 배회
-      m.wanderCd -= dt;
-      if (m.wanderCd <= 0) {
-        m.wanderCd = 1.5 + Math.random() * 3;
-        const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]].sort(() => Math.random() - 0.5);
-        for (const [dx, dy] of dirs) {
-          if (this.level.passableFor(m, m.x + dx, m.y + dy)) { m.path = [{ x: m.x + dx, y: m.y + dy }]; break; }
-        }
+    // 배회
+    m.wanderCd -= dt;
+    if (m.wanderCd <= 0) {
+      m.wanderCd = 1.5 + Math.random() * 3;
+      const dirs = [[0, 1], [0, -1], [1, 0], [-1, 0]].sort(() => Math.random() - 0.5);
+      for (const [dx, dy] of dirs) {
+        if (this.level.passableFor(m, m.x + dx, m.y + dy)) { m.path = [{ x: m.x + dx, y: m.y + dy }]; break; }
       }
     }
   }
