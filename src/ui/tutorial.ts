@@ -96,7 +96,7 @@ const STEPS: TutStep[] = [
     done: t => buggyCount(t.game) >= 1,
   },
   {
-    text: '잘했어요, 버기 완성! 🎉<br><br>모델은 분해할 수도 있습니다. 버기를 선택하고 <b>분해하기 (E)</b> 버튼을 눌러 보세요.',
+    text: '잘했어요, 버기 완성! 🎉<br><br>모델은 분해할 수도 있습니다. 버기를 선택하고 <b>분해하기 (R)</b> 버튼을 눌러 보세요.',
     domFind: findActionBtn('분해'),
     done: t => buggyCount(t.game) === 0,
   },
@@ -120,7 +120,7 @@ const STEPS: TutStep[] = [
     done: t => at(t.game, 'buggy', MOVE1),
   },
   {
-    text: '<b>브릭 집기 (Q)</b> 버튼을 누르세요.',
+    text: '<b>브릭 집기 (SPACE)</b> 버튼을 누르세요.',
     domFind: findActionBtn('브릭 집기'),
     done: t => t.game.mode.type === 'pickup',
   },
@@ -135,7 +135,7 @@ const STEPS: TutStep[] = [
     done: t => at(t.game, 'buggy', MOVE2),
   },
   {
-    text: '<b>내려놓기 (Q)</b> 버튼을 누르세요.',
+    text: '<b>내려놓기 (SPACE)</b> 버튼을 누르세요.',
     domFind: findActionBtn('내려놓기'),
     done: t => t.game.mode.type === 'drop',
   },

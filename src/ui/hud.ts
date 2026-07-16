@@ -94,14 +94,21 @@ export class Hud {
       b.onmouseenter = () => playSfxEvent('rollover');
       actions.appendChild(b);
     };
+    // 원작과 동일한 토글식 능력 버튼: 유닛 상태에 따라 같은 슬롯의 라벨/동작이 바뀐다.
+    // 주 능력(집기·파기·이식·밀기)은 모두 SPACE 하나로 통합 (유닛당 주 능력은 1종)
     btn('이동 (기본)', { type: 'move' });
-    if (e.def.carries > 0 && carry === 0) btn('브릭 집기 (Q)', { type: 'pickup' });
-    if (carry > 0) btn('내려놓기 (Q)', { type: 'drop' });
-    if (e.def.dig) { btn('땅 파기 (DIG)', { type: 'dig' }); btn('메우기 (FILL)', { type: 'fill' }); }
-    if (e.def.transplant) { btn('나무 뽑기', { type: 'uproot' }); btn('나무 심기', { type: 'plant' }); }
-    if (e.def.push) btn('밀기 (PUSH)', { type: 'push' });
-    if (e.def.attack) btn('공격', { type: 'attack' });
-    btn('분해하기 (E)', null, () => this.game.takeApart(e));
+    if (e.def.carries > 0) {
+      btn(carry > 0 ? '내려놓기 (SPACE)' : '브릭 집기 (SPACE)', { type: carry > 0 ? 'drop' : 'pickup' });
+    }
+    if (e.def.dig) {
+      btn(e.hasDirt ? '메우기 (SPACE)' : '땅 파기 (SPACE)', { type: e.hasDirt ? 'fill' : 'dig' });
+    }
+    if (e.def.transplant) {
+      btn(e.hasTree ? '나무 심기 (SPACE)' : '나무 뽑기 (SPACE)', { type: e.hasTree ? 'plant' : 'uproot' });
+    }
+    if (e.def.push) btn('밀기 (SPACE)', { type: 'push' });
+    if (e.def.attack) btn('공격 (X)', { type: 'attack' });
+    btn('분해하기 (R)', null, () => this.game.takeApart(e));
   }
 
   updatePlans(): void {

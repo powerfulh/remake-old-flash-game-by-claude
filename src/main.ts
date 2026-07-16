@@ -171,18 +171,26 @@ function startMission(def: LevelDef): void {
   const keys = new Set<string>();
   window.onkeydown = e => {
     keys.add(e.key);
-    // 단축키 E: 선택된 유닛 분해하기
-    if ((e.key === 'e' || e.key === 'E') && !e.repeat) {
+    // 능력 단축키 (원작과 같은 토글식)
+    //   SPACE: 유닛의 주 능력 (집기/내려놓기 · 파기/메우기 · 나무 뽑기/심기 · 밀기 — 유닛당 1종)
+    //   X: 공격, R: 분해하기
+    if (!e.repeat) {
       const sel = g.selected;
-      if (sel && sel.cls === 'unit') g.takeApart(sel);
-    }
-    // 단축키 Q: 브릭 집기(빈 손) / 내려놓기(운반 중) 토글
-    if ((e.key === 'q' || e.key === 'Q') && !e.repeat) {
-      const sel = g.selected;
-      if (sel && sel.cls === 'unit' && sel.def.carries > 0) {
-        const action = brickTotal(sel.carrying) > 0 ? 'drop' : 'pickup';
+      const key = e.key.toLowerCase();
+      const toggle = (action: 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant' | 'push' | 'attack') =>
         g.setMode(g.mode.type === action ? { type: 'move' } : { type: action });
+      if (sel && sel.cls === 'unit') {
+        if (key === ' ') {
+          e.preventDefault();
+          if (sel.def.carries > 0) toggle(brickTotal(sel.carrying) > 0 ? 'drop' : 'pickup');
+          else if (sel.def.dig) toggle(sel.hasDirt ? 'fill' : 'dig');
+          else if (sel.def.transplant) toggle(sel.hasTree ? 'plant' : 'uproot');
+          else if (sel.def.push) toggle('push');
+        } else if (key === 'x' && sel.def.attack) toggle('attack');
+        else if (key === 'r') g.takeApart(sel);
       }
+      // 버튼 포커스가 남아 스페이스가 버튼을 재클릭하지 않도록
+      if (key === ' ') (document.activeElement as HTMLElement | null)?.blur?.();
     }
     // 단축키 1~9: 플랜 슬롯 조립 모드 토글 (10번째 이후 플랜은 클릭 전용)
     if (e.key >= '1' && e.key <= '9' && !e.repeat) {
