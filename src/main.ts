@@ -27,8 +27,13 @@ function saveProgress(p: Progress): void {
 }
 let progress = loadProgress();
 
+/** 전체 해금은 개발 모드 전용 (빌드에서는 저장된 플래그도 무시) */
+function unlockAllActive(): boolean {
+  return import.meta.env.DEV && progress.unlockAll;
+}
+
 function isUnlocked(world: number, mission: number): boolean {
-  if (progress.unlockAll || mission === 1) return true;
+  if (unlockAllActive() || mission === 1) return true;
   // 해당 미션 번호를 unlocks 에 포함한 선행 미션 중 하나라도 완료됐으면 해금
   return LEVELS.some(l => l.world === world && l.unlocks.includes(mission)
     && progress.done[`${world}.${l.mission}`]?.goal);
@@ -36,7 +41,7 @@ function isUnlocked(world: number, mission: number): boolean {
 
 /** 월드 해금: 이전 월드 미션 12 클리어 (unlocks 의 13 = 다음 월드) */
 function isWorldUnlocked(world: number): boolean {
-  if (world === 1 || progress.unlockAll) return true;
+  if (world === 1 || unlockAllActive()) return true;
   return !!progress.done[`${world - 1}.12`]?.goal;
 }
 
@@ -78,14 +83,17 @@ function showMenu(): void {
   }
   menu.appendChild(grid);
 
-  const opt = document.createElement('label');
-  opt.innerHTML = `<input type="checkbox" ${progress.unlockAll ? 'checked' : ''}/> 전체 미션 해금 (검토용)`;
-  opt.querySelector('input')!.onchange = ev => {
-    progress.unlockAll = (ev.target as HTMLInputElement).checked;
-    saveProgress(progress);
-    showMenu();
-  };
-  menu.appendChild(opt);
+  // 전체 해금 체크박스는 개발 모드에서만 렌더 (빌드 배포본에는 노출하지 않음)
+  if (import.meta.env.DEV) {
+    const opt = document.createElement('label');
+    opt.innerHTML = `<input type="checkbox" ${progress.unlockAll ? 'checked' : ''}/> 전체 미션 해금 (검토용)`;
+    opt.querySelector('input')!.onchange = ev => {
+      progress.unlockAll = (ev.target as HTMLInputElement).checked;
+      saveProgress(progress);
+      showMenu();
+    };
+    menu.appendChild(opt);
+  }
 }
 
 // ---------- 게임 루프 ----------
