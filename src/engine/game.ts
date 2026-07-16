@@ -93,14 +93,10 @@ export class Game {
 
     switch (this.mode.type) {
       case 'move': {
-        if (target && target.cls !== 'monster') { this.select(target); return; }
-        if (target && target.cls === 'monster' && sel?.def.attack) {
-          sel.attackTarget = target.id;
-          this.approach(sel, x, y);
-          return;
-        }
+        // 기본(이동) 모드에서는 몬스터 포함 아무 엔티티나 클릭 = 선택.
+        // 공격 지시는 공격 모드(공격 버튼/X)에서만 내린다.
+        if (target) { this.select(target); return; }
         if (sel && sel.cls === 'unit') this.commandMove(sel, x, y);
-        else if (target) this.select(target);
         break;
       }
       case 'pickup': this.actAdjacent(sel, x, y, () => this.doPickup(sel!, x, y)); break;
