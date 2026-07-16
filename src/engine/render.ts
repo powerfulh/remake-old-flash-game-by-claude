@@ -177,6 +177,17 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
           ctx.font = 'bold 12px sans-serif';
           ctx.fillText('z z', ex + 10, ey - 18);
         }
+        // 에너지 상태 아이콘 (원작 icon.charging / no_energy / low_energy)
+        if (e.cls !== 'monster') {
+          if (time - e.chargingAt < 0.25) {
+            // 충전중: 3프레임 애니메이션
+            drawSpriteCentered(ctx, `icon.charging.${Math.floor(time * 6) % 3}`, ex, ey - 32);
+          } else if (e.energy <= 0) {
+            if (Math.floor(time * 2) % 2 === 0) drawSpriteCentered(ctx, 'icon.no_energy', ex, ey - 32);
+          } else if (e.energy < 20) {
+            if (Math.floor(time * 2) % 2 === 0) drawSpriteCentered(ctx, 'icon.low_energy', ex, ey - 32);
+          }
+        }
         // 에너지 바 — 최근 피격된 엔티티에만 잠시 표시 (전투 피드백)
         if (time - e.lastHitAt < 3 && e.energy < 100) {
           ctx.fillStyle = '#222';

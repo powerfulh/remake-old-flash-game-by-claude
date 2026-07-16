@@ -525,6 +525,7 @@ export class Game {
       if (Math.max(Math.abs(u.x - e.x), Math.abs(u.y - e.y)) > 1) continue;
       if (u.energy < CONFIG.maxEnergy) {
         u.energy = Math.min(CONFIG.maxEnergy, u.energy + RECHARGE_RATE * dt);
+        u.chargingAt = this.time;
         if (this.selected?.id === u.id) this.ev.selectionChanged();
       }
     }

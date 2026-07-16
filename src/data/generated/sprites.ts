@@ -9,6 +9,13 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "regX": 19,
   "regY": 11
  },
+ "icon.charging.0": {
+  "file": "icon.charging.0.png",
+  "w": 21,
+  "h": 12,
+  "regX": 0,
+  "regY": -34
+ },
  "resource.red.4": {
   "file": "resource.red.4.png",
   "w": 58,
@@ -58,6 +65,13 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "regX": 19,
   "regY": 13
  },
+ "icon.charging.2": {
+  "file": "icon.charging.2.png",
+  "w": 21,
+  "h": 12,
+  "regX": 0,
+  "regY": -34
+ },
  "resource.green.2": {
   "file": "resource.green.2.png",
   "w": 38,
@@ -78,6 +92,13 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "h": 27,
   "regX": 19,
   "regY": 13
+ },
+ "icon.no_energy": {
+  "file": "icon.no_energy.png",
+  "w": 21,
+  "h": 12,
+  "regX": 0,
+  "regY": -34
  },
  "resource.yellow.4": {
   "file": "resource.yellow.4.png",
@@ -127,6 +148,20 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "h": 39,
   "regX": 34,
   "regY": 25
+ },
+ "icon.low_energy": {
+  "file": "icon.low_energy.png",
+  "w": 21,
+  "h": 12,
+  "regX": 0,
+  "regY": -34
+ },
+ "icon.charging.1": {
+  "file": "icon.charging.1.png",
+  "w": 21,
+  "h": 12,
+  "regX": 0,
+  "regY": -34
  },
  "carry.blue": {
   "file": "carry.blue.png",
