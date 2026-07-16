@@ -128,19 +128,47 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "regX": 34,
   "regY": 25
  },
- "goal.shadow.water": {
-  "file": "goal.shadow.water.png",
-  "w": 23,
-  "h": 13,
-  "regX": 0,
-  "regY": -38
+ "carry.blue": {
+  "file": "carry.blue.png",
+  "w": 19,
+  "h": 17,
+  "regX": 9,
+  "regY": 8
  },
- "goal.shadow.normal": {
-  "file": "goal.shadow.normal.png",
-  "w": 24,
-  "h": 14,
-  "regX": 1,
-  "regY": -21
+ "carry.green": {
+  "file": "carry.green.png",
+  "w": 19,
+  "h": 17,
+  "regX": 9,
+  "regY": 8
+ },
+ "carry.yellow": {
+  "file": "carry.yellow.png",
+  "w": 19,
+  "h": 17,
+  "regX": 9,
+  "regY": 8
+ },
+ "carry.red": {
+  "file": "carry.red.png",
+  "w": 19,
+  "h": 17,
+  "regX": 9,
+  "regY": 8
+ },
+ "carry.energy_dead": {
+  "file": "carry.energy_dead.png",
+  "w": 13,
+  "h": 17,
+  "regX": 7,
+  "regY": 8
+ },
+ "carry.wheel": {
+  "file": "carry.wheel.png",
+  "w": 17,
+  "h": 13,
+  "regX": 9,
+  "regY": 6
  },
  "build_cloud2": {
   "file": "build_cloud2.png",
@@ -175,6 +203,20 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "w": 17,
   "h": 17,
   "regX": 8,
+  "regY": 8
+ },
+ "carry.energy_low": {
+  "file": "carry.energy_low.png",
+  "w": 13,
+  "h": 17,
+  "regX": 7,
+  "regY": 8
+ },
+ "carry.energy": {
+  "file": "carry.energy.png",
+  "w": 13,
+  "h": 17,
+  "regX": 7,
   "regY": 8
  },
  "take_apart_cloud2": {

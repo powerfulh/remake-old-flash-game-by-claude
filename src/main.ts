@@ -7,6 +7,7 @@ import { Game } from './engine/game';
 import { brickTotal } from './engine/level';
 import { Camera, pickCell, render } from './engine/render';
 import { Hud } from './ui/hud';
+import { Tutorial } from './ui/tutorial';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -33,6 +34,15 @@ function isUnlocked(world: number, mission: number): boolean {
     && progress.done[`${world}.${l.mission}`]?.goal);
 }
 
+/** 월드 해금: 이전 월드 미션 12 클리어 (unlocks 의 13 = 다음 월드) */
+function isWorldUnlocked(world: number): boolean {
+  if (world === 1 || progress.unlockAll) return true;
+  return !!progress.done[`${world - 1}.12`]?.goal;
+}
+
+/** 현재 구현 완료된 월드 (이후 월드는 다음 단계에서 개방) */
+const IMPLEMENTED_WORLDS = 2;
+
 // ---------- 메뉴 ----------
 let currentWorld = 1;
 
@@ -48,8 +58,8 @@ function showMenu(): void {
   tabs.className = 'world-tabs';
   for (let w = 1; w <= 5; w++) {
     const b = document.createElement('button');
-    b.textContent = `월드 ${w}`;
-    b.disabled = w !== 1; // 1단계: 월드 1만 활성 (나머지는 5단계에서)
+    b.textContent = `월드 ${w}${w <= IMPLEMENTED_WORLDS && !isWorldUnlocked(w) ? ' 🔒' : ''}`;
+    b.disabled = w > IMPLEMENTED_WORLDS || !isWorldUnlocked(w);
     if (w === currentWorld) b.style.background = '#ff8f00';
     b.onclick = () => { currentWorld = w; showMenu(); };
     tabs.appendChild(b);
@@ -80,6 +90,7 @@ function showMenu(): void {
 
 // ---------- 게임 루프 ----------
 let hud: Hud | null = null;
+let tutorial: Tutorial | null = null;
 const cam = new Camera();
 let rafId = 0;
 
@@ -126,6 +137,10 @@ function startMission(def: LevelDef): void {
   const c = def.center ?? [Math.floor(def.width / 2), Math.floor(def.height / 2)];
   cam.centerOn(c[0], c[1], canvas.width, canvas.height);
 
+  // 월드 1 미션 1: 원작 튜토리얼 시퀀스
+  tutorial?.destroy();
+  tutorial = def.world === 1 && def.mission === 1 ? new Tutorial(g, cam, canvas) : null;
+
   // ----- 입력 -----
   let dragging = false, lastX = 0, lastY = 0, movedPx = 0;
   canvas.onmousedown = e => { dragging = true; movedPx = 0; lastX = e.clientX; lastY = e.clientY; };
@@ -156,17 +171,36 @@ function startMission(def: LevelDef): void {
   const keys = new Set<string>();
   window.onkeydown = e => {
     keys.add(e.key);
-    // 단축키 E: 선택된 유닛 분해하기
-    if ((e.key === 'e' || e.key === 'E') && !e.repeat) {
+    // 능력 단축키 (원작과 같은 토글식)
+    //   SPACE: 유닛의 주 능력 (집기/내려놓기 · 파기/메우기 · 나무 뽑기/심기 · 밀기 — 유닛당 1종)
+    //   X: 공격, R: 분해하기
+    if (!e.repeat) {
       const sel = g.selected;
-      if (sel && sel.cls === 'unit') g.takeApart(sel);
-    }
-    // 단축키 Q: 브릭 집기(빈 손) / 내려놓기(운반 중) 토글
-    if ((e.key === 'q' || e.key === 'Q') && !e.repeat) {
-      const sel = g.selected;
-      if (sel && sel.cls === 'unit' && sel.def.carries > 0) {
-        const action = brickTotal(sel.carrying) > 0 ? 'drop' : 'pickup';
+      const key = e.key.toLowerCase();
+      const toggle = (action: 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant' | 'push' | 'attack') =>
         g.setMode(g.mode.type === action ? { type: 'move' } : { type: action });
+      if (sel && sel.cls === 'unit') {
+        if (key === ' ') {
+          e.preventDefault();
+          if (sel.def.carries > 0) toggle(brickTotal(sel.carrying) > 0 ? 'drop' : 'pickup');
+          else if (sel.def.dig) toggle(sel.hasDirt ? 'fill' : 'dig');
+          else if (sel.def.transplant) toggle(sel.hasTree ? 'plant' : 'uproot');
+          else if (sel.def.push) toggle('push');
+        } else if (key === 'x' && sel.def.attack) toggle('attack');
+        else if (key === 'r') g.takeApart(sel);
+      }
+      // 버튼 포커스가 남아 스페이스가 버튼을 재클릭하지 않도록
+      if (key === ' ') (document.activeElement as HTMLElement | null)?.blur?.();
+    }
+    // 단축키 1~9: 플랜 슬롯 조립 모드 토글 (10번째 이후 플랜은 클릭 전용)
+    if (e.key >= '1' && e.key <= '9' && !e.repeat) {
+      const idx = Number(e.key) - 1;
+      if (g.level.planInv[idx]) {
+        const cur = g.mode;
+        g.setMode(
+          cur.type === 'build' && cur.planIdx === idx ? { type: 'move' } : { type: 'build', planIdx: idx },
+          'click_plan',
+        );
       }
     }
   };
@@ -184,6 +218,7 @@ function startMission(def: LevelDef): void {
     if (keys.has('ArrowUp') || keys.has('w')) cam.y -= sp;
     if (keys.has('ArrowDown') || keys.has('s')) cam.y += sp;
     g.tick(dt);
+    tutorial?.update();
     render(ctx, g, cam, g.time);
     rafId = requestAnimationFrame(loop);
   };
@@ -200,6 +235,8 @@ function markDone(def: LevelDef, kind: 'goal' | 'bonus'): void {
 
 function endMission(): void {
   cancelAnimationFrame(rafId);
+  tutorial?.destroy();
+  tutorial = null;
   hud = null;
   showMenu();
 }

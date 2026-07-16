@@ -40,11 +40,16 @@ export function cellAnchor(x: number, y: number): [number, number] {
   return [x * STEP_X - y * SHEAR, y * STEP_Y];
 }
 
-/** 화면 좌표 → 셀 좌표 */
+/**
+ * 화면 좌표 → 셀 좌표.
+ * 타일 좌우 경계는 행 내부에서도 연속적으로 기울어 있으므로(0.5px/px, SHEAR = STEP_Y/2),
+ * 행별 고정 시어가 아니라 wy 전체에 비례한 시어를 적용해야
+ * 그려지는 평행사변형과 판정 경계가 정확히 일치한다.
+ */
 export function pickCell(sx: number, sy: number, cam: Camera): [number, number] {
   const wx = sx + cam.x, wy = sy + cam.y;
   const y = Math.floor(wy / STEP_Y);
-  const x = Math.floor((wx + SHEAR * y) / STEP_X);
+  const x = Math.floor((wx + wy * (SHEAR / STEP_Y)) / STEP_X);
   return [x, y];
 }
 
@@ -89,7 +94,9 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
   const entByRow = new Map<number, Entity[]>();
   for (const e of lv.entities) {
     if (e.dead) continue;
-    const row = e.moving && e.moveT < 0.5 ? e.fromY : e.y;
+    // 세로 이동 중에는 두 행에 걸쳐 있으므로 아래쪽 행에 묶는다 —
+    // 아래 행 타일이 유닛보다 먼저 그려져 유닛이 가려지는 문제 방지
+    const row = e.moving ? Math.max(e.fromY, e.y) : e.y;
     const arr = entByRow.get(row) ?? [];
     arr.push(e);
     entByRow.set(row, arr);
@@ -120,8 +127,6 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
       if (g.y !== y || g.done) continue;
       const [ax, ay] = cellAnchor(g.x, g.y);
       const cx = ax + CELL_CX, cy = ay + CELL_CY;
-      const onWater = WATERY.has(lv.terrain[g.y][g.x]);
-      drawSprite(ctx, onWater ? 'goal.shadow.water' : 'goal.shadow.normal', cx, cy);
       const bob = Math.sin(time * 3 + g.x) * 4;
       if (g.bonus) drawBonusStar(ctx, cx, cy + bob - 22);
       else drawGoalMark(ctx, cx, cy + bob - 10);
@@ -160,6 +165,7 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
           ctx.fillStyle = e.cls === 'monster' ? '#e53935' : '#fff';
           ctx.fillRect(ex - 8, ey - 8, 16, 16);
         }
+        if (e.cls !== 'monster') drawCarriedBricks(ctx, e, ex, ey);
         // 몬스터 휴식 표시
         if (e.cls === 'monster' && e.resting && e.type !== 'boulder') {
           ctx.fillStyle = 'rgba(255,255,255,.85)';
@@ -176,6 +182,8 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
       }
     }
   }
+  drawPlannedPaths(ctx, game);
+
   // 조립/분해 구름 이펙트 (원본 build_cloud / take_apart_cloud 프레임 애니메이션)
   for (const fx of game.effects) {
     const [ax, ay] = cellAnchor(fx.x, fx.y);
@@ -184,6 +192,38 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
       ? `build_cloud${Math.min(2, Math.floor(progress * 2) + 1)}`
       : `take_apart_cloud${Math.min(3, Math.floor(progress * 3) + 1)}`;
     drawSpriteCentered(ctx, frame, ax + CELL_CX, ay + CELL_CY - 8);
+  }
+
+  // 튜토리얼 대상 셀 마커 — 튀는 화살표 + 펄스 링
+  if (game.tutorialCell) {
+    const [tx, ty] = game.tutorialCell;
+    const [ax, ay] = cellAnchor(tx, ty);
+    const cx = ax + CELL_CX, cy = ay + CELL_CY;
+    const bounce = Math.abs(Math.sin(time * 4)) * 8;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,216,61,.9)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 24 + Math.sin(time * 4) * 3, 11 + Math.sin(time * 4) * 1.5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    // 아래로 향하는 화살표
+    const base = cy - 34 - bounce;
+    ctx.fillStyle = '#ffd83d';
+    ctx.strokeStyle = '#7a5200';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx - 5, base - 14);
+    ctx.lineTo(cx + 5, base - 14);
+    ctx.lineTo(cx + 5, base - 7);
+    ctx.lineTo(cx + 10, base - 7);
+    ctx.lineTo(cx, base + 3);
+    ctx.lineTo(cx - 10, base - 7);
+    ctx.lineTo(cx - 5, base - 7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
   }
 
   drawActionArrows(ctx, game, time);
@@ -205,7 +245,57 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
   ctx.restore();
 }
 
-const ADJACENT_ACTIONS = new Set(['pickup', 'drop', 'dig', 'fill', 'uproot', 'plant']);
+/**
+ * 적재물 표시 (원본 carry.* 스프라이트) — 운반 중인 브릭을 유닛 위에 쌓아 그린다.
+ * 3개씩 한 줄로 위로 쌓고, 6개까지만 표시 (초과분은 HUD 적재 표기로 확인).
+ */
+function drawCarriedBricks(ctx: CanvasRenderingContext2D, e: Entity, ex: number, ey: number): void {
+  const items: string[] = [];
+  for (const [c, n] of Object.entries(e.carrying)) {
+    for (let i = 0; i < (n ?? 0) && items.length < 6; i++) items.push(c);
+  }
+  items.forEach((c, i) => {
+    const dx = (i % 3 - 1) * 11;
+    const dy = -20 - Math.floor(i / 3) * 8;
+    drawSprite(ctx, `carry.${c}`, ex + dx, ey + dy);
+  });
+}
+
+/** 이동 계획 표시 — 유닛의 현재 위치에서 남은 경로의 타일 중심을 잇는 반투명 선 */
+function drawPlannedPaths(ctx: CanvasRenderingContext2D, game: Game): void {
+  for (const e of game.level.entities) {
+    if (e.dead || e.cls === 'monster') continue;
+    if (!e.moving && e.path.length === 0) continue;
+    const pts: [number, number][] = [entPixel(e)];
+    if (e.moving) {
+      const [ax, ay] = cellAnchor(e.x, e.y);
+      pts.push([ax + CELL_CX, ay + CELL_CY]);
+    }
+    for (const c of e.path) {
+      const [ax, ay] = cellAnchor(c.x, c.y);
+      pts.push([ax + CELL_CX, ay + CELL_CY]);
+    }
+    if (pts.length < 2) continue;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,.35)';
+    ctx.lineWidth = 4;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.stroke();
+    // 목적지 점
+    const [dx, dy] = pts[pts.length - 1];
+    ctx.beginPath();
+    ctx.arc(dx, dy, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,.5)';
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+const ADJACENT_ACTIONS = new Set(['pickup', 'drop', 'dig', 'fill', 'uproot', 'plant', 'push']);
 // 사선 투영에서 각 그리드 방향의 화면 벡터: +x=(51,0), +y=(-24,54)
 const ARROW_DIRS = [
   { dx: 0, dy: -1, angle: Math.atan2(-STEP_Y, SHEAR) },
@@ -224,7 +314,7 @@ function drawActionArrows(ctx: CanvasRenderingContext2D, game: Game, time: numbe
   const sel = game.selected;
   const mode = game.mode.type;
   if (!sel || !ADJACENT_ACTIONS.has(mode)) return;
-  const action = mode as 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant';
+  const action = mode as import('./game').AdjacentAction;
   const lv = game.level;
   const bob = Math.sin(time * 5) * 2;
   for (const { dx, dy, angle } of ARROW_DIRS) {

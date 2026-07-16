@@ -1,4 +1,5 @@
 import type { Game, ActionMode } from '../engine/game';
+import { UNIT_DESCRIPTIONS } from '../data/generated/descriptions';
 import { playSfxEvent } from '../engine/audio';
 import { brickTotal, unitDefOf } from '../engine/level';
 
@@ -61,8 +62,19 @@ export class Hud {
     const carryTxt = carry > 0
       ? `적재: ${Object.entries(e.carrying).filter(([, n]) => n).map(([c, n]) => `${c}×${n}`).join(', ')}`
       : e.hasDirt ? '적재: 흙 1' : e.hasTree ? '적재: 나무 1' : '';
+    // 원작 위키(wb_help_models / unit info 텍스트) 기반 유닛 정보 카드
+    const desc = UNIT_DESCRIPTIONS[e.type];
+    const wiki = desc ? `
+      <div class="desc">${desc.text}</div>
+      <div class="stats">
+        ${desc.terrain ? `<div><span>지형</span>${desc.terrain}</div>` : ''}
+        ${desc.speed ? `<div><span>속도</span>${desc.speed}</div>` : ''}
+        ${desc.actions ? `<div><span>능력</span>${desc.actions}</div>` : ''}
+        ${desc.capacity ? `<div><span>적재</span>${desc.capacity}</div>` : ''}
+      </div>` : '';
     info.innerHTML = `
       <div class="name">${e.def.name || e.type}</div>
+      ${wiki}
       <div>에너지</div>
       <div class="energy-bar"><div class="${e.energy < 25 ? 'low' : ''}" style="width:${Math.max(0, e.energy)}%"></div></div>
       ${e.hp < 100 ? `<div>내구도 ${Math.ceil(e.hp)}%</div>` : ''}
@@ -82,13 +94,21 @@ export class Hud {
       b.onmouseenter = () => playSfxEvent('rollover');
       actions.appendChild(b);
     };
+    // 원작과 동일한 토글식 능력 버튼: 유닛 상태에 따라 같은 슬롯의 라벨/동작이 바뀐다.
+    // 주 능력(집기·파기·이식·밀기)은 모두 SPACE 하나로 통합 (유닛당 주 능력은 1종)
     btn('이동 (기본)', { type: 'move' });
-    if (e.def.carries > 0 && carry === 0) btn('브릭 집기 (Q)', { type: 'pickup' });
-    if (carry > 0) btn('내려놓기 (Q)', { type: 'drop' });
-    if (e.def.dig) { btn('땅 파기 (DIG)', { type: 'dig' }); btn('메우기 (FILL)', { type: 'fill' }); }
-    if (e.def.transplant) { btn('나무 뽑기', { type: 'uproot' }); btn('나무 심기', { type: 'plant' }); }
-    if (e.def.attack) btn('공격', { type: 'attack' });
-    btn('분해하기 (E)', null, () => this.game.takeApart(e));
+    if (e.def.carries > 0) {
+      btn(carry > 0 ? '내려놓기 (SPACE)' : '브릭 집기 (SPACE)', { type: carry > 0 ? 'drop' : 'pickup' });
+    }
+    if (e.def.dig) {
+      btn(e.hasDirt ? '메우기 (SPACE)' : '땅 파기 (SPACE)', { type: e.hasDirt ? 'fill' : 'dig' });
+    }
+    if (e.def.transplant) {
+      btn(e.hasTree ? '나무 심기 (SPACE)' : '나무 뽑기 (SPACE)', { type: e.hasTree ? 'plant' : 'uproot' });
+    }
+    if (e.def.push) btn('밀기 (SPACE)', { type: 'push' });
+    if (e.def.attack) btn('공격 (X)', { type: 'attack' });
+    btn('분해하기 (R)', null, () => this.game.takeApart(e));
   }
 
   updatePlans(): void {
@@ -101,7 +121,8 @@ export class Hud {
     }
     inv.forEach((p, i) => {
       const b = document.createElement('button');
-      b.textContent = `${p.unit} ×${p.uses} 조립`;
+      // 1~9번 슬롯은 숫자키 단축키 표시
+      b.textContent = `${i < 9 ? `${i + 1}. ` : ''}${p.unit} ×${p.uses} 조립`;
       const mode = this.game.mode;
       if (mode.type === 'build' && mode.planIdx === i) b.classList.add('active');
       b.onclick = () => {

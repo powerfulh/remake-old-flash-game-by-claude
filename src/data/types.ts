@@ -96,6 +96,16 @@ export interface UnitData {
 
 // ---------- 스프라이트 매니페스트 ----------
 
+/** 원작 유닛 정보 카드 (unit info 텍스트 멤버 = wb_help_models 위키와 동일) */
+export interface UnitDescription {
+  text: string;
+  terrain: string;
+  speed: string;
+  actions: string;
+  capacity: string;
+}
+export type UnitDescriptions = Record<string, UnitDescription>;
+
 export interface SpriteInfo {
   file: string;
   w: number;
