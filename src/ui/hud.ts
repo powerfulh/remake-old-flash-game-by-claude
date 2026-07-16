@@ -1,4 +1,5 @@
 import type { Game, ActionMode } from '../engine/game';
+import { UNIT_DESCRIPTIONS } from '../data/generated/descriptions';
 import { playSfxEvent } from '../engine/audio';
 import { brickTotal, unitDefOf } from '../engine/level';
 
@@ -61,8 +62,19 @@ export class Hud {
     const carryTxt = carry > 0
       ? `적재: ${Object.entries(e.carrying).filter(([, n]) => n).map(([c, n]) => `${c}×${n}`).join(', ')}`
       : e.hasDirt ? '적재: 흙 1' : e.hasTree ? '적재: 나무 1' : '';
+    // 원작 위키(wb_help_models / unit info 텍스트) 기반 유닛 정보 카드
+    const desc = UNIT_DESCRIPTIONS[e.type];
+    const wiki = desc ? `
+      <div class="desc">${desc.text}</div>
+      <div class="stats">
+        ${desc.terrain ? `<div><span>지형</span>${desc.terrain}</div>` : ''}
+        ${desc.speed ? `<div><span>속도</span>${desc.speed}</div>` : ''}
+        ${desc.actions ? `<div><span>능력</span>${desc.actions}</div>` : ''}
+        ${desc.capacity ? `<div><span>적재</span>${desc.capacity}</div>` : ''}
+      </div>` : '';
     info.innerHTML = `
       <div class="name">${e.def.name || e.type}</div>
+      ${wiki}
       <div>에너지</div>
       <div class="energy-bar"><div class="${e.energy < 25 ? 'low' : ''}" style="width:${Math.max(0, e.energy)}%"></div></div>
       ${e.hp < 100 ? `<div>내구도 ${Math.ceil(e.hp)}%</div>` : ''}
