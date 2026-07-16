@@ -89,7 +89,9 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
   const entByRow = new Map<number, Entity[]>();
   for (const e of lv.entities) {
     if (e.dead) continue;
-    const row = e.moving && e.moveT < 0.5 ? e.fromY : e.y;
+    // 세로 이동 중에는 두 행에 걸쳐 있으므로 아래쪽 행에 묶는다 —
+    // 아래 행 타일이 유닛보다 먼저 그려져 유닛이 가려지는 문제 방지
+    const row = e.moving ? Math.max(e.fromY, e.y) : e.y;
     const arr = entByRow.get(row) ?? [];
     arr.push(e);
     entByRow.set(row, arr);
