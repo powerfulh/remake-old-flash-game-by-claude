@@ -10,6 +10,11 @@ const BRICK_KO: Record<string, string> = {
 const BRICK_COLOR: Record<string, string> = {
   red: '#e53935', yellow: '#fdd835', blue: '#1e88e5', green: '#43a047', wheel: '#9e9e9e', energy: '#aeea00',
 };
+/** TerrainId → 위키 표기와 같은 영문 라벨 (몬스터 패널용) */
+const TERRAIN_LABEL: Record<string, string> = {
+  normal: 'Normal', rocky: 'Rocky', water: 'Water', deep: 'Deep Water',
+  reef: 'Reefs', swamp: 'Swamp', whirl: 'Whirlpool',
+};
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -84,6 +89,10 @@ export class Hud {
         ${desc.actions ? `<div><span>능력</span>${desc.actions}</div>` : ''}
         ${capacity ? `<div><span>적재</span>${capacity}</div>` : ''}
       </div>` : '';
+    // 몬스터는 위키 카드가 없으므로 config terrain 으로 이동 가능 지형 표시
+    const monsterStats = !desc && e.cls === 'monster' && e.def.terrain.length
+      ? `<div class="stats"><div><span>지형</span>${e.def.terrain.map(t => TERRAIN_LABEL[t] ?? t).join(', ')}</div></div>`
+      : '';
     // 사거리: 전투 유닛은 공격 사거리, 몬스터는 근접(1) + 탐지 범위
     const range = e.def.attack
       ? (e.cls === 'monster' ? `1 (탐지 ${e.def.attack.searchRange})` : `${e.def.attack.searchRange}`)
@@ -94,6 +103,7 @@ export class Hud {
     info.innerHTML = `
       <div class="name">${e.cls === 'monster' ? '⚠️ ' : ''}${e.def.name || e.type}</div>
       ${wiki}
+      ${monsterStats}
       ${combatRow}
       <div>에너지</div>
       <div class="energy-bar"><div class="${e.energy < 25 ? 'low' : ''}" style="width:${Math.max(0, e.energy)}%"></div></div>
