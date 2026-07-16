@@ -1,4 +1,5 @@
 import type { Game, ActionMode } from '../engine/game';
+import { COMBAT_STATS } from '../data/combatStats';
 import { UNIT_DESCRIPTIONS } from '../data/generated/descriptions';
 import { playSfxEvent } from '../engine/audio';
 import { brickTotal, unitDefOf } from '../engine/level';
@@ -68,6 +69,7 @@ export class Hud {
       : e.hasDirt ? '적재: 흙 1' : e.hasTree ? '적재: 나무 1' : '';
     // 원작 위키(wb_help_models / unit info 텍스트) 기반 유닛 정보 카드
     const desc = UNIT_DESCRIPTIONS[e.type];
+    const combat = COMBAT_STATS[e.type];
     const wiki = desc ? `
       <div class="desc">${desc.text}</div>
       <div class="stats">
@@ -76,14 +78,18 @@ export class Hud {
         ${desc.actions ? `<div><span>능력</span>${desc.actions}</div>` : ''}
         ${desc.capacity ? `<div><span>적재</span>${desc.capacity}</div>` : ''}
       </div>` : '';
+    const combatRow = combat
+      ? `<div class="stats combat"><div><span>공격</span>${combat.attack}</div><div><span>방어</span>${combat.defense}</div></div>`
+      : e.type === 'boulder' ? '<div class="stats combat"><div>파괴 불가 장애물</div></div>' : '';
     info.innerHTML = `
-      <div class="name">${e.def.name || e.type}</div>
+      <div class="name">${e.cls === 'monster' ? '⚠️ ' : ''}${e.def.name || e.type}</div>
       ${wiki}
+      ${combatRow}
       <div>에너지</div>
       <div class="energy-bar"><div class="${e.energy < 25 ? 'low' : ''}" style="width:${Math.max(0, e.energy)}%"></div></div>
       ${carryTxt ? `<div class="carry">${carryTxt}</div>` : ''}
     `;
-    if (e.cls === 'building') return;
+    if (e.cls === 'building' || e.cls === 'monster') return; // 액션 버튼 없음
 
     const mode = this.game.mode;
     const btn = (label: string, m: ActionMode | null, extra?: () => void) => {

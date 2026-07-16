@@ -47,6 +47,11 @@ html, body { height: 100%; overflow: hidden; background: #1a2430; color: #eee; f
 #unit-info .stats span {
   display: inline-block; width: 34px; color: #ffb74d; font-weight: bold; font-size: 11px;
 }
+#unit-info .stats.combat {
+  display: flex; gap: 14px; padding: 4px 8px; margin-bottom: 8px;
+  background: rgba(229, 57, 53, .12); border: 1px solid #7d3030; border-radius: 6px;
+}
+#unit-info .stats.combat span { color: #ef9a9a; }
 .energy-bar { height: 10px; background: #333; border-radius: 5px; overflow: hidden; margin: 4px 0; }
 .energy-bar > div { height: 100%; background: #66bb6a; transition: width .2s; }
 .energy-bar > div.low { background: #ef5350; }

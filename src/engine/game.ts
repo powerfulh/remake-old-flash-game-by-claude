@@ -53,10 +53,10 @@ export class Game {
   // ---------- 선택/명령 ----------
 
   select(e: Entity | null): void {
-    if (e && (e.cls === 'monster' || e.dead)) return;
+    if (e?.dead) return;
     this.selected = e;
     this.mode = { type: 'move' };
-    if (e) {
+    if (e && e.cls !== 'monster') {
       const k = e.def.kind;
       playSfxEvent(k === 'animal' ? 'unit_animal' : k === 'robot' ? 'unit_robot' : 'unit_vehicle');
     }
