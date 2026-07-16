@@ -372,11 +372,16 @@ export class Game {
     }
     const cells: string[] = [];
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) cells.push(lv.key(x + dx, y + dy));
-    // 소모 — 사용한 에너지 브릭의 충전량이 새 유닛의 시작 에너지가 된다
+    // 소모 — 사용한 에너지 브릭의 충전량이 새 유닛의 시작 에너지가 된다.
+    // 에너지 브릭은 충전량이 가장 높은 더미부터 소모 (여러 개 있을 때 최선의 브릭 선택)
     let energyTaken = 0, energyChargeSum = 0;
     for (const [c, needRaw] of Object.entries(def.recipe)) {
+      const order = c === 'energy'
+        ? [...cells].sort((a, b) =>
+          (lv.piles.get(b)?.energyCharge ?? -1) - (lv.piles.get(a)?.energyCharge ?? -1))
+        : cells;
       let need = needRaw ?? 0;
-      for (const k of cells) {
+      for (const k of order) {
         if (need <= 0) break;
         const p = lv.piles.get(k);
         if (!p) continue;
@@ -459,10 +464,16 @@ export class Game {
     this.time += dt;
     for (const fx of this.effects) fx.t += dt;
     this.effects = this.effects.filter(fx => fx.t < EFFECT_DURATION[fx.kind]);
+    // 1) 이동/도착 페이즈 — 골 판정이 같은 틱의 전투보다 항상 먼저 처리되도록 분리
+    //    (크랩 공격이 배열 순서상 먼저 실행되어, 골을 밟는 도착이 사망으로 스킵되는 문제 방지)
     for (const e of this.level.entities) {
       if (e.dead) continue;
       if (e.cls === 'monster') this.tickMonster(e, dt);
       this.tickMove(e, dt);
+    }
+    // 2) 전투/충전 페이즈
+    for (const e of this.level.entities) {
+      if (e.dead) continue;
       this.tickCombat(e, dt);
       this.tickRecharge(e, dt);
     }
