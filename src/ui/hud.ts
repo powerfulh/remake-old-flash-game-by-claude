@@ -70,16 +70,23 @@ export class Hud {
     // 원작 위키(wb_help_models / unit info 텍스트) 기반 유닛 정보 카드
     const desc = UNIT_DESCRIPTIONS[e.type];
     const combat = COMBAT_STATS[e.type];
+    // 연비: 칸당 이동 에너지 (몬스터는 이동 에너지 미소모라 제외)
+    const moveCost = e.cls === 'unit' ? e.def.energy.move : undefined;
     const wiki = desc ? `
       <div class="desc">${desc.text}</div>
       <div class="stats">
         ${desc.terrain ? `<div><span>지형</span>${desc.terrain}</div>` : ''}
         ${desc.speed ? `<div><span>속도</span>${desc.speed}</div>` : ''}
+        ${moveCost != null ? `<div><span>연비</span>에너지 ${moveCost}/칸</div>` : ''}
         ${desc.actions ? `<div><span>능력</span>${desc.actions}</div>` : ''}
         ${desc.capacity ? `<div><span>적재</span>${desc.capacity}</div>` : ''}
       </div>` : '';
+    // 사거리: 전투 유닛은 공격 사거리, 몬스터는 근접(1) + 탐지 범위
+    const range = e.def.attack
+      ? (e.cls === 'monster' ? `1 (탐지 ${e.def.attack.searchRange})` : `${e.def.attack.searchRange}`)
+      : null;
     const combatRow = combat
-      ? `<div class="stats combat"><div><span>공격</span>${combat.attack}</div><div><span>방어</span>${combat.defense}</div></div>`
+      ? `<div class="stats combat"><div><span>공격</span>${combat.attack}</div><div><span>방어</span>${combat.defense}</div>${range ? `<div><span>사거리</span>${range}</div>` : ''}</div>`
       : e.type === 'boulder' ? '<div class="stats combat"><div>파괴 불가 장애물</div></div>' : '';
     info.innerHTML = `
       <div class="name">${e.cls === 'monster' ? '⚠️ ' : ''}${e.def.name || e.type}</div>
