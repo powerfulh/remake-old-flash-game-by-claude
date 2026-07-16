@@ -99,13 +99,9 @@ export class Game {
         if (sel && sel.cls === 'unit') this.commandMove(sel, x, y);
         break;
       }
-      case 'pickup': this.actAdjacent(sel, x, y, () => this.doPickup(sel!, x, y)); break;
-      case 'drop': this.actAdjacent(sel, x, y, () => this.doDrop(sel!, x, y)); break;
-      case 'dig': this.actAdjacent(sel, x, y, () => this.doDig(sel!, x, y)); break;
-      case 'fill': this.actAdjacent(sel, x, y, () => this.doFill(sel!, x, y)); break;
-      case 'uproot': this.actAdjacent(sel, x, y, () => this.doUproot(sel!, x, y)); break;
-      case 'plant': this.actAdjacent(sel, x, y, () => this.doPlant(sel!, x, y)); break;
-      case 'push': this.actAdjacent(sel, x, y, () => this.doPush(sel!, x, y)); break;
+      case 'pickup': case 'drop': case 'dig': case 'fill': case 'uproot': case 'plant': case 'push':
+        this.actAdjacent(sel, x, y, this.mode.type);
+        break;
       case 'attack': {
         if (target && target.cls === 'monster' && sel?.def.attack) {
           sel.attackTarget = target.id;
@@ -118,15 +114,53 @@ export class Game {
     }
   }
 
-  /** 인접 필요 액션: 인접하면 즉시 실행, 아니면 안내 */
-  private actAdjacent(sel: Entity | null, x: number, y: number, fn: () => void): void {
+  /** 능력 실행 디스패처 (인접 상태 전제) */
+  private performAction(e: Entity, action: AdjacentAction, x: number, y: number): void {
+    const dist = Math.abs(e.x - x) + Math.abs(e.y - y);
+    if (dist === 1) e.dir = DIR_OF(x - e.x, y - e.y);
+    switch (action) {
+      case 'pickup': this.doPickup(e, x, y); break;
+      case 'drop': this.doDrop(e, x, y); break;
+      case 'dig': this.doDig(e, x, y); break;
+      case 'fill': this.doFill(e, x, y); break;
+      case 'uproot': this.doUproot(e, x, y); break;
+      case 'plant': this.doPlant(e, x, y); break;
+      case 'push': this.doPush(e, x, y); break;
+    }
+  }
+
+  /**
+   * 인접 필요 액션: 인접하면 즉시 실행.
+   * 멀면 대상과 인접한 칸까지 이동 가능한지 계산해 자동 이동 + 도착 시 실행을 예약,
+   * 접근 불가면 토스트.
+   */
+  private actAdjacent(sel: Entity | null, x: number, y: number, action: AdjacentAction): void {
     if (!sel) return;
     const dist = Math.abs(sel.x - x) + Math.abs(sel.y - y);
     if (dist <= 1) {
-      if (dist === 1) sel.dir = DIR_OF(x - sel.x, y - sel.y);
-      fn();
+      sel.pendingAction = null;
+      this.performAction(sel, action, x, y);
     } else {
-      this.ev.toast('유닛과 인접한 칸을 선택하세요');
+      // 위치 무관 조건 사전 검증 (push 는 방향 의존이라 대상 존재만 확인)
+      const lv = this.level;
+      const feasible = action === 'push'
+        ? lv.entityAt(x, y)?.type === 'boulder' || lv.piles.has(lv.key(x, y))
+        : this.canActAt(sel, action, x, y);
+      if (!feasible) {
+        this.ev.toast('그 칸에는 이 능력을 사용할 수 없습니다');
+      } else {
+        const path = findPathAdjacent(lv.w, lv.h, { x: sel.x, y: sel.y }, { x, y },
+          (px, py) => lv.passableFor(sel, px, py),
+          (px, py) => lv.moveCost(sel, px, py));
+        if (!path) {
+          this.ev.toast('그 위치까지 이동할 수 없습니다');
+        } else {
+          sel.path = path;
+          sel.attackTarget = null;
+          sel.pendingAction = { action, x, y };
+          playSfxEvent('move');
+        }
+      }
     }
     this.mode = { type: 'move' };
     this.ev.selectionChanged();
@@ -141,6 +175,7 @@ export class Game {
     if (!path) { this.ev.toast('갈 수 없는 곳입니다'); return; }
     e.path = path;
     e.attackTarget = null;
+    e.pendingAction = null; // 새 이동 명령은 예약된 능력을 취소
     playSfxEvent('move');
   }
 
@@ -532,6 +567,17 @@ export class Game {
   }
 
   private tickMove(e: Entity, dt: number): void {
+    // 예약된 능력: 이동이 끝났으면 실행 (경로가 막혀 중단된 경우 포함)
+    if (!e.moving && e.path.length === 0 && e.pendingAction) {
+      const pa = e.pendingAction;
+      e.pendingAction = null;
+      if (Math.abs(e.x - pa.x) + Math.abs(e.y - pa.y) <= 1) {
+        this.performAction(e, pa.action as AdjacentAction, pa.x, pa.y);
+      } else {
+        this.ev.toast('접근 경로가 막혀 능력을 사용하지 못했습니다');
+      }
+      this.ev.selectionChanged();
+    }
     if (e.moving) {
       // speed 0 엔티티(boulder)도 밀리는 애니메이션은 진행돼야 함
       e.moveT += dt * (e.def.speed > 0 ? e.def.speed : PUSH_ANIM_SPEED);

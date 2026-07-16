@@ -34,6 +34,8 @@ export interface Entity {
   attackCd: number;
   /** 공격 지시 대상 */
   attackTarget: number | null;
+  /** 예약된 능력: 대상까지 자동 이동 후 도착 시 실행 */
+  pendingAction: { action: string; x: number; y: number } | null;
   /** 몬스터 활동/휴식 */
   restTimer: number;
   resting: boolean;
@@ -150,7 +152,7 @@ export class LevelState {
       fromX: x, fromY: y, moveT: 1, moving: false, path: [],
       energy: CONFIG.maxEnergy, lastHitAt: -999, chargingAt: -999,
       carrying: {}, carryCharge: CONFIG.maxEnergy, hasDirt: false, hasTree: false,
-      attackCd: 0, attackTarget: null,
+      attackCd: 0, attackTarget: null, pendingAction: null,
       restTimer: 0, resting: false, wanderCd: Math.random() * 2, dead: false,
     };
     this.entities.push(e);
