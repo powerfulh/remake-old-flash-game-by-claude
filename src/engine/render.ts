@@ -176,6 +176,8 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
       }
     }
   }
+  drawPlannedPaths(ctx, game);
+
   // 조립/분해 구름 이펙트 (원본 build_cloud / take_apart_cloud 프레임 애니메이션)
   for (const fx of game.effects) {
     const [ax, ay] = cellAnchor(fx.x, fx.y);
@@ -203,6 +205,40 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
   }
 
   ctx.restore();
+}
+
+/** 이동 계획 표시 — 유닛의 현재 위치에서 남은 경로의 타일 중심을 잇는 반투명 선 */
+function drawPlannedPaths(ctx: CanvasRenderingContext2D, game: Game): void {
+  for (const e of game.level.entities) {
+    if (e.dead || e.cls === 'monster') continue;
+    if (!e.moving && e.path.length === 0) continue;
+    const pts: [number, number][] = [entPixel(e)];
+    if (e.moving) {
+      const [ax, ay] = cellAnchor(e.x, e.y);
+      pts.push([ax + CELL_CX, ay + CELL_CY]);
+    }
+    for (const c of e.path) {
+      const [ax, ay] = cellAnchor(c.x, c.y);
+      pts.push([ax + CELL_CX, ay + CELL_CY]);
+    }
+    if (pts.length < 2) continue;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,.35)';
+    ctx.lineWidth = 4;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.stroke();
+    // 목적지 점
+    const [dx, dy] = pts[pts.length - 1];
+    ctx.beginPath();
+    ctx.arc(dx, dy, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,.5)';
+    ctx.fill();
+    ctx.restore();
+  }
 }
 
 const ADJACENT_ACTIONS = new Set(['pickup', 'drop', 'dig', 'fill', 'uproot', 'plant']);
