@@ -491,7 +491,8 @@ export class Game {
 
   private tickMove(e: Entity, dt: number): void {
     if (e.moving) {
-      e.moveT += dt * e.def.speed;
+      // speed 0 엔티티(boulder)도 밀리는 애니메이션은 진행돼야 함
+      e.moveT += dt * (e.def.speed > 0 ? e.def.speed : PUSH_ANIM_SPEED);
       if (e.moveT >= 1) {
         e.moving = false;
         e.moveT = 1;
@@ -636,6 +637,9 @@ export const EFFECT_DURATION = { build: 0.28, takeApart: 0.36, damage: 0.4 } as 
 
 /** 충전 건물의 초당 에너지 회복량 */
 const RECHARGE_RATE = 34;
+
+/** 밀리는 물체(boulder 등 speed 0)의 이동 애니메이션 속도 (칸/초) */
+const PUSH_ANIM_SPEED = 2.5;
 
 export type AdjacentAction = 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant' | 'push';
 
