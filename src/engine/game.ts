@@ -39,6 +39,8 @@ export class Game {
   hover: { x: number; y: number } | null = null;
   /** 진행 중인 이펙트 (조립/분해 구름) */
   effects: { x: number; y: number; kind: 'build' | 'takeApart'; t: number }[] = [];
+  /** 튜토리얼이 가리키는 셀 (렌더러가 마커 표시) */
+  tutorialCell: [number, number] | null = null;
   private ev: GameEvents;
 
   constructor(def: LevelDef, ev: GameEvents) {

@@ -7,6 +7,7 @@ import { Game } from './engine/game';
 import { brickTotal } from './engine/level';
 import { Camera, pickCell, render } from './engine/render';
 import { Hud } from './ui/hud';
+import { Tutorial } from './ui/tutorial';
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -80,6 +81,7 @@ function showMenu(): void {
 
 // ---------- 게임 루프 ----------
 let hud: Hud | null = null;
+let tutorial: Tutorial | null = null;
 const cam = new Camera();
 let rafId = 0;
 
@@ -125,6 +127,10 @@ function startMission(def: LevelDef): void {
   // 카메라 초기 위치
   const c = def.center ?? [Math.floor(def.width / 2), Math.floor(def.height / 2)];
   cam.centerOn(c[0], c[1], canvas.width, canvas.height);
+
+  // 월드 1 미션 1: 원작 튜토리얼 시퀀스
+  tutorial?.destroy();
+  tutorial = def.world === 1 && def.mission === 1 ? new Tutorial(g, cam, canvas) : null;
 
   // ----- 입력 -----
   let dragging = false, lastX = 0, lastY = 0, movedPx = 0;
@@ -195,6 +201,7 @@ function startMission(def: LevelDef): void {
     if (keys.has('ArrowUp') || keys.has('w')) cam.y -= sp;
     if (keys.has('ArrowDown') || keys.has('s')) cam.y += sp;
     g.tick(dt);
+    tutorial?.update();
     render(ctx, g, cam, g.time);
     rafId = requestAnimationFrame(loop);
   };
@@ -211,6 +218,8 @@ function markDone(def: LevelDef, kind: 'goal' | 'bonus'): void {
 
 function endMission(): void {
   cancelAnimationFrame(rafId);
+  tutorial?.destroy();
+  tutorial = null;
   hud = null;
   showMenu();
 }

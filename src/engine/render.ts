@@ -194,6 +194,38 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
     drawSpriteCentered(ctx, frame, ax + CELL_CX, ay + CELL_CY - 8);
   }
 
+  // 튜토리얼 대상 셀 마커 — 튀는 화살표 + 펄스 링
+  if (game.tutorialCell) {
+    const [tx, ty] = game.tutorialCell;
+    const [ax, ay] = cellAnchor(tx, ty);
+    const cx = ax + CELL_CX, cy = ay + CELL_CY;
+    const bounce = Math.abs(Math.sin(time * 4)) * 8;
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,216,61,.9)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 24 + Math.sin(time * 4) * 3, 11 + Math.sin(time * 4) * 1.5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    // 아래로 향하는 화살표
+    const base = cy - 34 - bounce;
+    ctx.fillStyle = '#ffd83d';
+    ctx.strokeStyle = '#7a5200';
+    ctx.lineWidth = 2;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx - 5, base - 14);
+    ctx.lineTo(cx + 5, base - 14);
+    ctx.lineTo(cx + 5, base - 7);
+    ctx.lineTo(cx + 10, base - 7);
+    ctx.lineTo(cx, base + 3);
+    ctx.lineTo(cx - 10, base - 7);
+    ctx.lineTo(cx - 5, base - 7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
   drawActionArrows(ctx, game, time);
 
   if (game.hover) {
