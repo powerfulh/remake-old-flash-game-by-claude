@@ -122,8 +122,6 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
       if (g.y !== y || g.done) continue;
       const [ax, ay] = cellAnchor(g.x, g.y);
       const cx = ax + CELL_CX, cy = ay + CELL_CY;
-      const onWater = WATERY.has(lv.terrain[g.y][g.x]);
-      drawSprite(ctx, onWater ? 'goal.shadow.water' : 'goal.shadow.normal', cx, cy);
       const bob = Math.sin(time * 3 + g.x) * 4;
       if (g.bonus) drawBonusStar(ctx, cx, cy + bob - 22);
       else drawGoalMark(ctx, cx, cy + bob - 10);
