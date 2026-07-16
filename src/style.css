@@ -53,7 +53,7 @@ html, body { height: 100%; overflow: hidden; background: #1a2430; color: #eee; f
 #unit-info .carry { color: #ffcc80; font-size: 12px; margin-top: 4px; }
 
 #actions { display: flex; flex-direction: column; gap: 4px; }
-#actions button, #plans button, #banner button, #btn-menu, #menu button {
+#actions button, #plans button, #banner button, #btn-menu, #btn-retry, #menu button {
   background: #1565c0; color: #fff; border: 1px solid #0d47a1; border-radius: 6px;
   padding: 6px 10px; cursor: pointer; font-size: 13px;
 }

@@ -131,7 +131,13 @@ function startMission(def: LevelDef): void {
     },
     unitLost: name => hud?.toast(`💥 ${name} 이(가) 파괴되었습니다!`),
   });
-  hud = new Hud(g, { onExit: endMission, onEndMission: endMission });
+  const restart = () => {
+    cancelAnimationFrame(rafId);
+    tutorial?.destroy();
+    tutorial = null;
+    startMission(def);
+  };
+  hud = new Hud(g, { onExit: endMission, onEndMission: endMission, onRetry: restart });
 
   // 카메라 초기 위치
   const c = def.center ?? [Math.floor(def.width / 2), Math.floor(def.height / 2)];
@@ -173,12 +179,13 @@ function startMission(def: LevelDef): void {
     keys.add(e.key);
     // 능력 단축키 (원작과 같은 토글식)
     //   SPACE: 유닛의 주 능력 (집기/내려놓기 · 파기/메우기 · 나무 뽑기/심기 · 밀기 — 유닛당 1종)
-    //   X: 공격, R: 분해하기
+    //   X: 공격, T: 분해하기, R: 미션 재시도
     if (!e.repeat) {
       const sel = g.selected;
       const key = e.key.toLowerCase();
       const toggle = (action: 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant' | 'push' | 'attack') =>
         g.setMode(g.mode.type === action ? { type: 'move' } : { type: action });
+      if (key === 'r') { restart(); return; }
       if (sel && sel.cls === 'unit') {
         if (key === ' ') {
           e.preventDefault();
@@ -187,7 +194,7 @@ function startMission(def: LevelDef): void {
           else if (sel.def.transplant) toggle(sel.hasTree ? 'plant' : 'uproot');
           else if (sel.def.push) toggle('push');
         } else if (key === 'x' && sel.def.attack) toggle('attack');
-        else if (key === 'r') g.takeApart(sel);
+        else if (key === 't') g.takeApart(sel);
       }
       // 버튼 포커스가 남아 스페이스가 버튼을 재클릭하지 않도록
       if (key === ' ') (document.activeElement as HTMLElement | null)?.blur?.();

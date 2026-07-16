@@ -15,6 +15,7 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 export interface HudCallbacks {
   onExit(): void;
   onEndMission(): void;
+  onRetry(): void;
 }
 
 export class Hud {
@@ -26,6 +27,7 @@ export class Hud {
     this.game = game;
     this.cb = cb;
     $('btn-menu').onclick = () => this.cb.onExit();
+    $('btn-retry').onclick = () => { playSfxEvent('click_button'); this.cb.onRetry(); };
     this.refreshAll();
   }
 
@@ -108,7 +110,7 @@ export class Hud {
     }
     if (e.def.push) btn('밀기 (SPACE)', { type: 'push' });
     if (e.def.attack) btn('공격 (X)', { type: 'attack' });
-    btn('분해하기 (R)', null, () => this.game.takeApart(e));
+    btn('분해하기 (T)', null, () => this.game.takeApart(e));
   }
 
   updatePlans(): void {
