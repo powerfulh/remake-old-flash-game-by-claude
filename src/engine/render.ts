@@ -118,8 +118,9 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
         ctx.fillRect(ax, ay, STEP_X, STEP_Y);
       }
       if (t === 'whirl') {
+        // 등록점이 원작 스크립트 기준이라 그대로 쓰면 우하단으로 치우침 — 셀 중앙 정렬로 그림
         const f = Math.floor(time * 5) % 4 + 1;
-        drawSprite(ctx, `whirlpool.generic.whirl.${f}`, ax + CELL_CX, ay + CELL_CY);
+        drawSpriteCentered(ctx, `whirlpool.generic.whirl.${f}`, ax + CELL_CX, ay + CELL_CY);
       }
     }
     // 2) 골 마커 / 플랜 / 브릭 더미
