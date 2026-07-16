@@ -94,14 +94,14 @@ export const UNIT_DESCRIPTIONS: UnitDescriptions = {
   "capacity": "10"
  },
  "freighter": {
-  "text": "This massive vessel can hold plenty of LEGO brick cargo. Use the spacebar to pick up and drop off loads.",
+  "text": "This massive vessel can hold plenty of 레고 brick cargo. Use the spacebar to pick up and drop off loads.",
   "terrain": "Water, Deep Water",
   "speed": "Medium",
   "actions": "Pick Up, Drop Off",
   "capacity": "25"
  },
  "frog": {
-  "text": "Frogs are small, green, and entirely made out of LEGO.",
+  "text": "Frogs are small, green, and entirely made out of 레고.",
   "terrain": "Normal, Shallow Water",
   "speed": "Fast",
   "actions": "None",

@@ -57,7 +57,7 @@ function showMenu(): void {
   $('game').classList.add('hidden');
   const menu = $('menu');
   menu.classList.remove('hidden');
-  menu.innerHTML = '<h1>LEGO WorldBuilder Remake</h1>';
+  menu.innerHTML = '<h1>레고 WorldBuilder Remake</h1>';
 
   const tabs = document.createElement('div');
   tabs.className = 'world-tabs';
@@ -262,7 +262,7 @@ function endMission(): void {
 // ---------- 부트 ----------
 async function boot(): Promise<void> {
   const menu = $('menu');
-  menu.innerHTML = '<h1>LEGO WorldBuilder Remake</h1><p>애셋 로딩 중…</p>';
+  menu.innerHTML = '<h1>레고 WorldBuilder Remake</h1><p>애셋 로딩 중…</p>';
   await loadSprites(Object.keys(SPRITE_MANIFEST));
   preloadAudio();
   showMenu();
