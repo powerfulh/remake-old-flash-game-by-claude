@@ -16,10 +16,10 @@ export const CELL_CY = 25;
 export const CONFIG = {
   /** FILL 은 DIG 로 퍼 온 흙이 있어야 가능 (원본 동작 추정 — 검토 포인트) */
   fillRequiresDirt: true,
-  /** 유닛/몬스터 공통 체력 */
-  maxHp: 100,
-  /** 에너지 브릭 용량 (config energy 비용이 0~100 스케일) */
+  /** 에너지 브릭 용량 (config energy 비용이 0~100 스케일). 전투도 에너지 기반 */
   maxEnergy: 100,
+  /** 비전투 유닛 피격 시 차감량 (최대 에너지의 33%) */
+  nonCombatHitDrain: 33,
   /** 몬스터 인접 공격 판정 거리 (타일, 체비쇼프) */
   attackAdjacency: 1,
 };

@@ -173,12 +173,12 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
           ctx.font = 'bold 12px sans-serif';
           ctx.fillText('z z', ex + 10, ey - 18);
         }
-        // 체력바 (전투 중 손상시)
-        if (e.hp < 100) {
+        // 에너지 바 — 최근 피격된 엔티티에만 잠시 표시 (전투 피드백)
+        if (time - e.lastHitAt < 3 && e.energy < 100) {
           ctx.fillStyle = '#222';
           ctx.fillRect(ex - 14, ey - 26, 28, 4);
-          ctx.fillStyle = e.hp > 40 ? '#66bb6a' : '#ef5350';
-          ctx.fillRect(ex - 14, ey - 26, 28 * Math.max(0, e.hp) / 100, 4);
+          ctx.fillStyle = e.energy > 40 ? '#66bb6a' : '#ef5350';
+          ctx.fillRect(ex - 14, ey - 26, 28 * Math.max(0, e.energy) / 100, 4);
         }
       }
     }

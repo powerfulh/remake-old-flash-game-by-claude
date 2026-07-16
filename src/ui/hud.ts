@@ -81,7 +81,6 @@ export class Hud {
       ${wiki}
       <div>에너지</div>
       <div class="energy-bar"><div class="${e.energy < 25 ? 'low' : ''}" style="width:${Math.max(0, e.energy)}%"></div></div>
-      ${e.hp < 100 ? `<div>내구도 ${Math.ceil(e.hp)}%</div>` : ''}
       ${carryTxt ? `<div class="carry">${carryTxt}</div>` : ''}
     `;
     if (e.cls === 'building') return;

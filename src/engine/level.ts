@@ -21,7 +21,8 @@ export interface Entity {
   moving: boolean;
   path: { x: number; y: number }[];
   energy: number;
-  hp: number;
+  /** 마지막 피격 시각 (game.time 기준, 피격 표시용) */
+  lastHitAt: number;
   carrying: Bricks;
   /** 운반 중인 에너지 브릭의 충전량 (0~100) */
   carryCharge: number;
@@ -145,7 +146,7 @@ export class LevelState {
     const e: Entity = {
       id: nextId++, cls, type, def, x, y, dir: 'down',
       fromX: x, fromY: y, moveT: 1, moving: false, path: [],
-      energy: CONFIG.maxEnergy, hp: CONFIG.maxHp,
+      energy: CONFIG.maxEnergy, lastHitAt: -999,
       carrying: {}, carryCharge: CONFIG.maxEnergy, hasDirt: false, hasTree: false,
       attackCd: 0, attackTarget: null,
       restTimer: 0, resting: false, wanderCd: Math.random() * 2, dead: false,

@@ -1,4 +1,5 @@
 import type { Bricks, LevelDef } from '../data/types';
+import { COMBAT_STATS } from '../data/combatStats';
 import { UNIT_DATA } from './../data/generated/units';
 import { CONFIG } from './const';
 import { brickTotal, Entity, LevelState, unitDefOf } from './level';
@@ -564,9 +565,15 @@ export class Game {
     }
   }
 
+  /**
+   * 에너지 기반 전투 (난수 없음):
+   * - 피해 = max(0, 공격자 attack - 피격자 defense) 를 에너지에서 차감
+   * - 비전투 유닛(COMBAT_STATS 에 없는 유닛)이 맞으면 최대 에너지의 33% 차감
+   * - 에너지 0 이하 → 강제 분해 (에너지 브릭 충전량 0)
+   */
   private tickCombat(e: Entity, dt: number): void {
     const atk = e.def.attack;
-    if (!atk) return;
+    if (!atk || !COMBAT_STATS[e.type]) return;
     e.attackCd -= dt;
     if (e.attackCd > 0) return;
     if (e.cls === 'monster' && e.resting) return;
@@ -590,27 +597,27 @@ export class Game {
       }
     }
     if (!target) return;
+    if (target.type === 'boulder') return; // 파괴 불가 장애물
 
     e.attackCd = 60 / atk.hitsPerMinute;
     e.dir = DIR_OF(Math.sign(target.x - e.x), Math.sign(target.y - e.y));
-    if (Math.random() * 100 > atk.chance) return; // 빗나감
-    const [lo, hi] = atk.damage;
-    const dmg = (lo + Math.random() * (hi - lo)) * target.def.shield;
-    target.hp -= dmg;
+    const targetStat = COMBAT_STATS[target.type];
+    const dmg = targetStat
+      ? Math.max(0, COMBAT_STATS[e.type].attack - targetStat.defense)
+      : CONFIG.nonCombatHitDrain;
+    if (dmg <= 0) return; // 방어력이 공격력 이상이면 무피해
+    target.energy -= dmg;
+    target.lastHitAt = this.time;
     this.effects.push({ x: target.x, y: target.y, kind: 'damage', t: 0 });
     playSfxEvent(e.cls === 'monster' ? 'monster_attack' : 'damage');
-    if (target.hp <= 0) this.destroy(target, e.cls === 'monster');
+    if (this.selected?.id === target.id) this.ev.selectionChanged();
+    if (target.energy <= 0) this.destroy(target);
   }
 
-  private destroy(e: Entity, byMonster = false): void {
+  /** 강제 분해: 에너지 고갈로 파괴 — 드랍되는 에너지 브릭은 잔량(0 이하면 0) */
+  private destroy(e: Entity): void {
     e.dead = true;
-    // 파괴 시 레시피 브릭 드랍 (원본: 몬스터가 유닛을 분해).
-    // 몬스터에게 파괴당한 유닛의 에너지 브릭은 최대치의 1/3 이 깎인다
-    // (원작은 전부 드레인 — 밸런스 조정).
-    const charge = byMonster && e.cls !== 'monster'
-      ? Math.max(0, e.energy - CONFIG.maxEnergy / 3)
-      : e.energy;
-    this.level.addBricks(e.x, e.y, e.def.recipe, charge);
+    this.level.addBricks(e.x, e.y, e.def.recipe, Math.max(0, e.energy));
     this.effects.push({ x: e.x, y: e.y, kind: 'takeApart', t: 0 });
     if (e.cls !== 'monster') this.ev.unitLost(e.def.name || e.type);
     if (this.selected?.id === e.id) this.select(null);
