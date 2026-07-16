@@ -38,8 +38,8 @@ export class Game {
   time = 0;
   /** 커서가 올라간 셀 (조립 범위 표시용) */
   hover: { x: number; y: number } | null = null;
-  /** 진행 중인 이펙트 (조립/분해 구름) */
-  effects: { x: number; y: number; kind: 'build' | 'takeApart'; t: number }[] = [];
+  /** 진행 중인 이펙트 (조립/분해 구름, 피격 버스트) */
+  effects: { x: number; y: number; kind: 'build' | 'takeApart' | 'damage'; t: number }[] = [];
   /** 튜토리얼이 가리키는 셀 (렌더러가 마커 표시) */
   tutorialCell: [number, number] | null = null;
   private ev: GameEvents;
@@ -597,6 +597,7 @@ export class Game {
     const [lo, hi] = atk.damage;
     const dmg = (lo + Math.random() * (hi - lo)) * target.def.shield;
     target.hp -= dmg;
+    this.effects.push({ x: target.x, y: target.y, kind: 'damage', t: 0 });
     playSfxEvent(e.cls === 'monster' ? 'monster_attack' : 'damage');
     if (target.hp <= 0) this.destroy(target, e.cls === 'monster');
   }
@@ -621,8 +622,8 @@ function UNITKIND(type: string): 'unit' | 'building' {
   return UNIT_DATA.buildings[type] ? 'building' : 'unit';
 }
 
-/** 이펙트 재생 시간(초) — build 2프레임, takeApart 3프레임 */
-export const EFFECT_DURATION = { build: 0.28, takeApart: 0.36 } as const;
+/** 이펙트 재생 시간(초) — build 2프레임, takeApart 3프레임, damage 5프레임 */
+export const EFFECT_DURATION = { build: 0.28, takeApart: 0.36, damage: 0.4 } as const;
 
 /** 충전 건물의 초당 에너지 회복량 */
 const RECHARGE_RATE = 34;

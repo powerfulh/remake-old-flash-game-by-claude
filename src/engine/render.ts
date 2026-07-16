@@ -185,13 +185,15 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
   }
   drawPlannedPaths(ctx, game);
 
-  // 조립/분해 구름 이펙트 (원본 build_cloud / take_apart_cloud 프레임 애니메이션)
+  // 조립/분해 구름, 피격 버스트 이펙트 (원본 프레임 애니메이션)
   for (const fx of game.effects) {
     const [ax, ay] = cellAnchor(fx.x, fx.y);
     const progress = fx.t / EFFECT_DURATION[fx.kind];
     const frame = fx.kind === 'build'
       ? `build_cloud${Math.min(2, Math.floor(progress * 2) + 1)}`
-      : `take_apart_cloud${Math.min(3, Math.floor(progress * 3) + 1)}`;
+      : fx.kind === 'takeApart'
+        ? `take_apart_cloud${Math.min(3, Math.floor(progress * 3) + 1)}`
+        : `damage.small.${Math.min(5, Math.floor(progress * 5) + 1)}`;
     drawSpriteCentered(ctx, frame, ax + CELL_CX, ay + CELL_CY - 8);
   }
 

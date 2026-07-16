@@ -247,6 +247,41 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "regX": 74,
   "regY": 46
  },
+ "damage.small.5": {
+  "file": "damage.small.5.png",
+  "w": 123,
+  "h": 134,
+  "regX": 53,
+  "regY": 59
+ },
+ "damage.small.4": {
+  "file": "damage.small.4.png",
+  "w": 95,
+  "h": 113,
+  "regX": 40,
+  "regY": 53
+ },
+ "damage.small.3": {
+  "file": "damage.small.3.png",
+  "w": 70,
+  "h": 90,
+  "regX": 29,
+  "regY": 41
+ },
+ "damage.small.2": {
+  "file": "damage.small.2.png",
+  "w": 44,
+  "h": 62,
+  "regX": 15,
+  "regY": 26
+ },
+ "damage.small.1": {
+  "file": "damage.small.1.png",
+  "w": 26,
+  "h": 37,
+  "regX": 10,
+  "regY": 15
+ },
  "terrain.normal": {
   "file": "terrain.normal.png",
   "w": 75,
