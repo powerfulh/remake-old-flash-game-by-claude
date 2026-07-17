@@ -1,4 +1,5 @@
 import type { Bricks, LevelDef } from '../data/types';
+import { terrainFamily } from '../data/types';
 import { COMBAT_STATS, SWAMP_HAZARD } from '../data/combatStats';
 import { UNIT_DATA } from './../data/generated/units';
 import { CONFIG } from './const';
@@ -229,14 +230,14 @@ export class Game {
         }
         if (lv.piles.has(k)) {
           const nt = lv.terrainAt(nx, ny);
-          return !!nt && nt !== 'mountain' && nt !== 'tree' && nt !== 'volcano' && !lv.entityAt(nx, ny);
+          return !!nt && isOpenGround(nt) && !lv.entityAt(nx, ny);
         }
         return false;
       }
       case 'pickup':
         return !!lv.piles.get(k) && e.def.carries > 0 && brickTotal(e.carrying) < e.def.carries;
       case 'drop':
-        return brickTotal(e.carrying) > 0 && t !== 'mountain' && t !== 'tree' && t !== 'volcano';
+        return brickTotal(e.carrying) > 0 && isOpenGround(t);
       case 'dig':
         // 브릭 더미가 있어도 굴착 가능 (더미는 물 위에 남는다)
         return e.def.dig && !e.hasDirt && (t === 'normal' || t === 'swamp')
@@ -246,7 +247,7 @@ export class Game {
           && (!CONFIG.fillRequiresDirt || e.hasDirt)
           && !lv.entityAt(x, y) && e.energy >= (e.def.energy.fill ?? 1);
       case 'uproot':
-        return e.def.transplant && !e.hasTree && t === 'tree' && e.energy >= (e.def.energy.uproot ?? 1);
+        return e.def.transplant && !e.hasTree && terrainFamily(t) === 'tree' && e.energy >= (e.def.energy.uproot ?? 1);
       case 'plant':
         return e.def.transplant && e.hasTree && (t === 'normal' || t === 'swamp')
           && !lv.entityAt(x, y) && !lv.piles.has(k) && e.energy >= (e.def.energy.plant ?? 1);
@@ -289,7 +290,7 @@ export class Game {
   private doDrop(e: Entity, x: number, y: number): void {
     if (brickTotal(e.carrying) === 0) { this.ev.toast('운반 중인 브릭이 없습니다'); return; }
     const t = this.level.terrainAt(x, y);
-    if (!t || t === 'mountain' || t === 'tree' || t === 'volcano') { this.ev.toast('여기엔 내려놓을 수 없습니다'); return; }
+    if (!t || !isOpenGround(t)) { this.ev.toast('여기엔 내려놓을 수 없습니다'); return; }
     this.level.addBricks(x, y, e.carrying, e.carryCharge);
     e.carrying = {};
     playSfxEvent('drop');
@@ -325,7 +326,7 @@ export class Game {
   private doUproot(e: Entity, x: number, y: number): void {
     if (!e.def.transplant) return;
     const lv = this.level;
-    if (lv.terrainAt(x, y) !== 'tree') { this.ev.toast('나무가 없습니다'); return; }
+    if (terrainFamily(lv.terrainAt(x, y)!) !== 'tree') { this.ev.toast('나무가 없습니다'); return; }
     if (e.hasTree) { this.ev.toast('이미 나무를 들고 있습니다'); return; }
     if (!this.spend(e, 'uproot')) return;
     lv.terrain[y][x] = 'normal';
@@ -469,14 +470,17 @@ export class Game {
 
   private completeGoal(g: Goal): void {
     g.done = true;
+    // 다중 골 맵(WB2) 지원: 같은 종류의 골이 전부 달성돼야 완료로 취급
+    const allMain = this.level.goals.filter(x => !x.bonus).every(x => x.done);
+    const allBonus = this.level.goals.filter(x => x.bonus).every(x => x.done);
     if (g.bonus) {
-      this.bonusDone = true;
       playSfxEvent('bonus_goal');
-      this.ev.bonusGoal();
+      if (allBonus && !this.bonusDone) { this.bonusDone = true; this.ev.bonusGoal(); }
+      else this.ev.toast('⭐ 보너스 골 하나 달성!');
     } else {
-      this.goalDone = true;
       playSfxEvent('mission_goal');
-      this.ev.missionGoal();
+      if (allMain && !this.goalDone) { this.goalDone = true; this.ev.missionGoal(); }
+      else this.ev.toast('❗ 미션 골 하나 달성! 남은 골이 있습니다');
     }
     this.ev.goalsChanged();
   }
@@ -548,8 +552,118 @@ export class Game {
       if (e.dead) continue;
       this.tickCombat(e, dt);
       this.tickRecharge(e, dt);
+      this.tickFreeze(e, dt);
+      this.tickProduction(e, dt);
     }
     this.tickSwamp(dt);
+    this.tickCollectGoals();
+  }
+
+  /** WB2 freezebot: 사거리 내 가장 가까운 몬스터를 자동 빙결 */
+  private tickFreeze(e: Entity, dt: number): void {
+    const fz = e.def.freeze;
+    if (!fz) return;
+    e.attackCd -= dt; // freezebot 은 attack 이 없어 attackCd 를 빙결 쿨다운으로 사용
+    if (e.attackCd > 0) return;
+    const cost = e.def.energy.freeze ?? 2;
+    if (e.energy < cost) return;
+    let best: Entity | null = null, bd = Infinity;
+    for (const m of this.level.entities) {
+      if (m.dead || m.cls !== 'monster' || m.type === 'boulder') continue;
+      if (m.frozenUntil > this.time) continue;
+      const d = Math.abs(m.x - e.x) + Math.abs(m.y - e.y);
+      if (d <= fz.range && d < bd) { bd = d; best = m; }
+    }
+    if (!best) return;
+    e.attackCd = fz.recharge;
+    e.energy -= cost;
+    e.dir = DIR_OF(Math.sign(best.x - e.x), Math.sign(best.y - e.y));
+    best.frozenUntil = this.time + fz.duration;
+    best.path = [];
+    this.effects.push({ x: best.x, y: best.y, kind: 'damage', t: 0 });
+    if (this.selected?.id === best.id || this.selected?.id === e.id) this.ev.selectionChanged();
+  }
+
+  /** WB2 생산 건물: factory(바위/나무→브릭), garage(바퀴), windmill(에너지), nursery(나무) */
+  private tickProduction(e: Entity, dt: number): void {
+    const cycle = e.def.howLongDoesItTake;
+    if (!cycle || e.cls !== 'building') return;
+    e.prodCd += dt;
+    if (e.prodCd < cycle) return;
+    e.prodCd = 0;
+    const cost = e.def.energy.make ?? 7.5;
+    if (e.energy < cost) return;
+    const lv = this.level;
+    const DIRS = [[0, -1], [0, 1], [-1, 0], [1, 0]] as const;
+    const adj = DIRS.map(([dx, dy]) => ({ x: e.x + dx, y: e.y + dy }))
+      .filter(c => lv.terrainAt(c.x, c.y) != null);
+    const emptyLand = (c: { x: number; y: number }) => {
+      const fam = terrainFamily(lv.terrainAt(c.x, c.y)!);
+      return (fam === 'normal' || fam === 'street') && !lv.entityAt(c.x, c.y) && !lv.piles.has(lv.key(c.x, c.y));
+    };
+    const produced = (c: { x: number; y: number }) => {
+      this.effects.push({ x: c.x, y: c.y, kind: 'build', t: 0 });
+      e.energy -= cost;
+    };
+    switch (e.type) {
+      case 'factory': {
+        // 인접한 바위 또는 나무를 현재 색상 브릭으로 가공
+        for (const c of adj) {
+          const b = lv.entityAt(c.x, c.y);
+          if (b && b.type === 'boulder') {
+            b.dead = true;
+            lv.addBricks(c.x, c.y, { [e.factoryColor]: e.def.makeHowManyBricks ?? 25 });
+            produced(c);
+            return;
+          }
+          if (terrainFamily(lv.terrainAt(c.x, c.y)!) === 'tree') {
+            lv.terrain[c.y][c.x] = 'normal';
+            lv.addBricks(c.x, c.y, { [e.factoryColor]: e.def.makeHowManyBricks ?? 25 });
+            produced(c);
+            return;
+          }
+        }
+        return;
+      }
+      case 'garage': case 'windmill': {
+        const color = e.type === 'garage' ? 'wheel' : 'energy';
+        // 이미 인접에 해당 브릭이 있으면 생산하지 않음 (원작 규칙)
+        if (adj.some(c => (lv.piles.get(lv.key(c.x, c.y))?.bricks[color] ?? 0) > 0)) return;
+        const spot = adj.find(emptyLand);
+        if (!spot) return;
+        lv.addBricks(spot.x, spot.y, { [color]: e.def.makeHowManyBricks ?? 1 });
+        produced(spot);
+        return;
+      }
+      case 'nursery': {
+        const spot = adj.find(c => lv.terrainAt(c.x, c.y) === 'normal' && !lv.entityAt(c.x, c.y) && !lv.piles.has(lv.key(c.x, c.y)));
+        if (!spot) return;
+        lv.terrain[spot.y][spot.x] = 'tree';
+        produced(spot);
+        return;
+      }
+    }
+  }
+
+  /** WB2 포획 골: 존 안의 해당 몬스터 수가 목표치 이상이면 달성 */
+  private tickCollectGoals(): void {
+    for (const g of this.level.goals) {
+      if (g.done || !g.collect || !g.zoneCells) continue;
+      let n = 0;
+      for (const m of this.level.entities) {
+        if (m.dead || m.cls !== 'monster' || m.type !== g.collect.type) continue;
+        if (g.zoneCells.has(this.level.key(m.x, m.y))) n++;
+      }
+      if (n >= g.collect.count) this.completeGoal(g);
+    }
+  }
+
+  /** WB2 factory 출력 색상 변경 (CHANGE COLOR) */
+  cycleFactoryColor(e: Entity): void {
+    const order = ['red', 'yellow', 'green', 'blue', 'white'] as const;
+    e.factoryColor = order[(order.indexOf(e.factoryColor) + 1) % order.length];
+    playSfxEvent('click_button');
+    this.ev.selectionChanged();
   }
 
   private swampTimer = 0;
@@ -644,6 +758,7 @@ export class Game {
       if (m.resting && m.restTimer >= m.def.restFor) { m.resting = false; m.restTimer = 0; }
       else if (!m.resting && m.restTimer >= m.def.restEvery) { m.resting = true; m.restTimer = 0; m.path = []; }
     }
+    if (m.frozenUntil > this.time) return; // 빙결 (WB2)
     if (m.resting || m.def.speed <= 0) return;
     if (m.moving || m.path.length) return;
 
@@ -685,7 +800,7 @@ export class Game {
     if (!atk || !COMBAT_STATS[e.type]) return;
     e.attackCd -= dt;
     if (e.attackCd > 0) return;
-    if (e.cls === 'monster' && e.resting) return;
+    if (e.cls === 'monster' && (e.resting || e.frozenUntil > this.time)) return;
 
     // 대상 탐색: 몬스터 → 인접 플레이어 유닛 / 유닛·타워 → 사거리 내 몬스터
     let target: Entity | null = null;
@@ -754,6 +869,13 @@ const RECHARGE_RATE = 34;
 
 /** 밀리는 물체(boulder 등 speed 0)의 이동 애니메이션 속도 (칸/초) */
 const PUSH_ANIM_SPEED = 2.5;
+
+/** 브릭을 놓거나 밀어 넣을 수 있는 열린 지면인지 (장애물 지형 제외) */
+function isOpenGround(t: import('../data/types').TerrainId): boolean {
+  const fam = terrainFamily(t);
+  return fam !== 'mountain' && fam !== 'tree' && fam !== 'volcano'
+    && fam !== 'jungle' && fam !== 'roadblock' && fam !== 'hole' && fam !== 'billboard';
+}
 
 export type AdjacentAction = 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant' | 'push';
 

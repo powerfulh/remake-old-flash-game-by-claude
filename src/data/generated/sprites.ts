@@ -4061,5 +4061,810 @@ export const SPRITE_MANIFEST: SpriteManifest = {
   "h": 77,
   "regX": 34,
   "regY": 51
+ },
+ "vehicle.freezebot": {
+  "file": "wb2_vehicle.freezebot.png",
+  "w": 44,
+  "h": 53,
+  "regX": 22,
+  "regY": 27
+ },
+ "vehicle.freezebot.up.attack.2": {
+  "file": "wb2_vehicle.freezebot.up.attack.2.png",
+  "w": 36,
+  "h": 50,
+  "regX": 18,
+  "regY": 25
+ },
+ "vehicle.freezebot.up.attack.1": {
+  "file": "wb2_vehicle.freezebot.up.attack.1.png",
+  "w": 36,
+  "h": 49,
+  "regX": 18,
+  "regY": 25
+ },
+ "vehicle.freezebot.up.walk.4": {
+  "file": "wb2_vehicle.freezebot.up.walk.4.png",
+  "w": 45,
+  "h": 47,
+  "regX": 23,
+  "regY": 24
+ },
+ "vehicle.freezebot.up.walk.3": {
+  "file": "wb2_vehicle.freezebot.up.walk.3.png",
+  "w": 45,
+  "h": 47,
+  "regX": 23,
+  "regY": 19
+ },
+ "vehicle.freezebot.up.walk.2": {
+  "file": "wb2_vehicle.freezebot.up.walk.2.png",
+  "w": 46,
+  "h": 46,
+  "regX": 23,
+  "regY": 18
+ },
+ "vehicle.freezebot.up.walk.1": {
+  "file": "wb2_vehicle.freezebot.up.walk.1.png",
+  "w": 44,
+  "h": 47,
+  "regX": 22,
+  "regY": 24
+ },
+ "vehicle.freezebot.up.stand": {
+  "file": "wb2_vehicle.freezebot.up.stand.png",
+  "w": 44,
+  "h": 46,
+  "regX": 22,
+  "regY": 23
+ },
+ "vehicle.freezebot.right.attack.2": {
+  "file": "wb2_vehicle.freezebot.right.attack.2.png",
+  "w": 66,
+  "h": 52,
+  "regX": 33,
+  "regY": 26
+ },
+ "vehicle.freezebot.right.walk.4": {
+  "file": "wb2_vehicle.freezebot.right.walk.4.png",
+  "w": 43,
+  "h": 53,
+  "regX": 22,
+  "regY": 27
+ },
+ "vehicle.freezebot.right.walk.3": {
+  "file": "wb2_vehicle.freezebot.right.walk.3.png",
+  "w": 40,
+  "h": 51,
+  "regX": 20,
+  "regY": 21
+ },
+ "vehicle.freezebot.right.walk.2": {
+  "file": "wb2_vehicle.freezebot.right.walk.2.png",
+  "w": 43,
+  "h": 53,
+  "regX": 22,
+  "regY": 22
+ },
+ "vehicle.freezebot.right.walk.1": {
+  "file": "wb2_vehicle.freezebot.right.walk.1.png",
+  "w": 46,
+  "h": 49,
+  "regX": 23,
+  "regY": 25
+ },
+ "vehicle.freezebot.right.stand": {
+  "file": "wb2_vehicle.freezebot.right.stand.png",
+  "w": 45,
+  "h": 53,
+  "regX": 23,
+  "regY": 27
+ },
+ "vehicle.freezebot.left.attack.2": {
+  "file": "wb2_vehicle.freezebot.left.attack.2.png",
+  "w": 66,
+  "h": 46,
+  "regX": 33,
+  "regY": 23
+ },
+ "vehicle.freezebot.left.attack.1": {
+  "file": "wb2_vehicle.freezebot.left.attack.1.png",
+  "w": 70,
+  "h": 50,
+  "regX": 35,
+  "regY": 25
+ },
+ "vehicle.freezebot.left.walk.4": {
+  "file": "wb2_vehicle.freezebot.left.walk.4.png",
+  "w": 44,
+  "h": 53,
+  "regX": 22,
+  "regY": 27
+ },
+ "vehicle.freezebot.left.walk.3": {
+  "file": "wb2_vehicle.freezebot.left.walk.3.png",
+  "w": 42,
+  "h": 54,
+  "regX": 21,
+  "regY": 22
+ },
+ "vehicle.freezebot.left.walk.2": {
+  "file": "wb2_vehicle.freezebot.left.walk.2.png",
+  "w": 45,
+  "h": 53,
+  "regX": 23,
+  "regY": 22
+ },
+ "vehicle.freezebot.left.walk.1": {
+  "file": "wb2_vehicle.freezebot.left.walk.1.png",
+  "w": 46,
+  "h": 52,
+  "regX": 23,
+  "regY": 26
+ },
+ "vehicle.freezebot.left.stand": {
+  "file": "wb2_vehicle.freezebot.left.stand.png",
+  "w": 46,
+  "h": 53,
+  "regX": 23,
+  "regY": 27
+ },
+ "vehicle.freezebot.down.attack.2": {
+  "file": "wb2_vehicle.freezebot.down.attack.2.png",
+  "w": 36,
+  "h": 53,
+  "regX": 18,
+  "regY": 27
+ },
+ "vehicle.freezebot.down.attack.1": {
+  "file": "wb2_vehicle.freezebot.down.attack.1.png",
+  "w": 36,
+  "h": 55,
+  "regX": 18,
+  "regY": 28
+ },
+ "vehicle.freezebot.down.walk.4": {
+  "file": "wb2_vehicle.freezebot.down.walk.4.png",
+  "w": 45,
+  "h": 55,
+  "regX": 23,
+  "regY": 28
+ },
+ "vehicle.freezebot.down.walk.3": {
+  "file": "wb2_vehicle.freezebot.down.walk.3.png",
+  "w": 46,
+  "h": 57,
+  "regX": 23,
+  "regY": 24
+ },
+ "vehicle.freezebot.down.walk.2": {
+  "file": "wb2_vehicle.freezebot.down.walk.2.png",
+  "w": 45,
+  "h": 54,
+  "regX": 23,
+  "regY": 22
+ },
+ "vehicle.freezebot.down.walk.1": {
+  "file": "wb2_vehicle.freezebot.down.walk.1.png",
+  "w": 43,
+  "h": 51,
+  "regX": 22,
+  "regY": 26
+ },
+ "vehicle.freezebot.down.stand": {
+  "file": "wb2_vehicle.freezebot.down.stand.png",
+  "w": 44,
+  "h": 53,
+  "regX": 22,
+  "regY": 27
+ },
+ "vehicle.freezebot.right.attack.1": {
+  "file": "wb2_vehicle.freezebot.right.attack.1.png",
+  "w": 70,
+  "h": 53,
+  "regX": 35,
+  "regY": 27
+ },
+ "monster.water_crab.frozen": {
+  "file": "wb2_monster.water_crab.frozen.png",
+  "w": 45,
+  "h": 43,
+  "regX": 23,
+  "regY": 21
+ },
+ "monster.trex.frozen": {
+  "file": "wb2_monster.trex.frozen.png",
+  "w": 66,
+  "h": 102,
+  "regX": 33,
+  "regY": 51
+ },
+ "monster.shark.frozen": {
+  "file": "wb2_monster.shark.frozen.png",
+  "w": 96,
+  "h": 40,
+  "regX": 48,
+  "regY": 20
+ },
+ "monster.scorpion.frozen": {
+  "file": "wb2_monster.scorpion.frozen.png",
+  "w": 39,
+  "h": 45,
+  "regX": 20,
+  "regY": 22
+ },
+ "monster.lion.frozen": {
+  "file": "wb2_monster.lion.frozen.png",
+  "w": 43,
+  "h": 74,
+  "regX": 22,
+  "regY": 37
+ },
+ "monster.gator.frozen": {
+  "file": "wb2_monster.gator.frozen.png",
+  "w": 41,
+  "h": 36,
+  "regX": 21,
+  "regY": 18
+ },
+ "monster.crab.frozen": {
+  "file": "wb2_monster.crab.frozen.png",
+  "w": 76,
+  "h": 33,
+  "regX": 38,
+  "regY": 16
+ },
+ "resource.white.4": {
+  "file": "wb2_resource.white.4.png",
+  "w": 58,
+  "h": 38,
+  "regX": 34,
+  "regY": 25
+ },
+ "resource.white.3": {
+  "file": "wb2_resource.white.3.png",
+  "w": 38,
+  "h": 27,
+  "regX": 19,
+  "regY": 13
+ },
+ "resource.white.2": {
+  "file": "wb2_resource.white.2.png",
+  "w": 38,
+  "h": 22,
+  "regX": 19,
+  "regY": 11
+ },
+ "resource.white.1": {
+  "file": "wb2_resource.white.1.png",
+  "w": 24,
+  "h": 17,
+  "regX": 12,
+  "regY": 8
+ },
+ "carry.white": {
+  "file": "wb2_carry.white.png",
+  "w": 19,
+  "h": 17,
+  "regX": 9,
+  "regY": 8
+ },
+ "building.factory": {
+  "file": "wb2_building.factory.png",
+  "w": 50,
+  "h": 57,
+  "regX": 19,
+  "regY": 15
+ },
+ "building.factory.yellow": {
+  "file": "wb2_building.factory.yellow.png",
+  "w": 50,
+  "h": 57,
+  "regX": 19,
+  "regY": 15
+ },
+ "building.factory.white": {
+  "file": "wb2_building.factory.white.png",
+  "w": 50,
+  "h": 57,
+  "regX": 19,
+  "regY": 15
+ },
+ "building.factory.red": {
+  "file": "wb2_building.factory.red.png",
+  "w": 50,
+  "h": 57,
+  "regX": 19,
+  "regY": 15
+ },
+ "building.factory.green": {
+  "file": "wb2_building.factory.green.png",
+  "w": 50,
+  "h": 57,
+  "regX": 19,
+  "regY": 15
+ },
+ "monster.lion.down.attack.1": {
+  "file": "wb2_monster.lion.down.attack.1.png",
+  "w": 40,
+  "h": 74,
+  "regX": 20,
+  "regY": 37
+ },
+ "monster.lion.down.attack.2": {
+  "file": "wb2_monster.lion.down.attack.2.png",
+  "w": 38,
+  "h": 49,
+  "regX": 19,
+  "regY": 25
+ },
+ "monster.lion.down": {
+  "file": "wb2_monster.lion.down.png",
+  "w": 37,
+  "h": 69,
+  "regX": 18,
+  "regY": 35
+ },
+ "monster.lion.down.walk.1": {
+  "file": "wb2_monster.lion.down.walk.1.png",
+  "w": 36,
+  "h": 68,
+  "regX": 18,
+  "regY": 34
+ },
+ "monster.lion.down.walk.2": {
+  "file": "wb2_monster.lion.down.walk.2.png",
+  "w": 40,
+  "h": 52,
+  "regX": 20,
+  "regY": 26
+ },
+ "monster.lion.right.attack.1": {
+  "file": "wb2_monster.lion.right.attack.1.png",
+  "w": 72,
+  "h": 58,
+  "regX": 36,
+  "regY": 29
+ },
+ "monster.lion.left.attack.2": {
+  "file": "wb2_monster.lion.left.attack.2.png",
+  "w": 77,
+  "h": 62,
+  "regX": 38,
+  "regY": 31
+ },
+ "monster.lion.left": {
+  "file": "wb2_monster.lion.left.png",
+  "w": 84,
+  "h": 45,
+  "regX": 42,
+  "regY": 23
+ },
+ "monster.lion.left.walk.1": {
+  "file": "wb2_monster.lion.left.walk.1.png",
+  "w": 69,
+  "h": 63,
+  "regX": 34,
+  "regY": 32
+ },
+ "monster.lion.left.walk.2": {
+  "file": "wb2_monster.lion.left.walk.2.png",
+  "w": 85,
+  "h": 52,
+  "regX": 42,
+  "regY": 26
+ },
+ "monster.lion.left.attack.1": {
+  "file": "wb2_monster.lion.left.attack.1.png",
+  "w": 67,
+  "h": 62,
+  "regX": 33,
+  "regY": 31
+ },
+ "monster.lion.right.attack.2": {
+  "file": "wb2_monster.lion.right.attack.2.png",
+  "w": 81,
+  "h": 72,
+  "regX": 40,
+  "regY": 36
+ },
+ "monster.lion.right": {
+  "file": "wb2_monster.lion.right.png",
+  "w": 86,
+  "h": 46,
+  "regX": 43,
+  "regY": 23
+ },
+ "monster.lion.right.walk.1": {
+  "file": "wb2_monster.lion.right.walk.1.png",
+  "w": 70,
+  "h": 63,
+  "regX": 35,
+  "regY": 32
+ },
+ "monster.lion.right.walk.2": {
+  "file": "wb2_monster.lion.right.walk.2.png",
+  "w": 86,
+  "h": 52,
+  "regX": 43,
+  "regY": 26
+ },
+ "monster.lion.up.attack.1": {
+  "file": "wb2_monster.lion.up.attack.1.png",
+  "w": 40,
+  "h": 53,
+  "regX": 20,
+  "regY": 27
+ },
+ "monster.lion.up.attack.2": {
+  "file": "wb2_monster.lion.up.attack.2.png",
+  "w": 41,
+  "h": 76,
+  "regX": 20,
+  "regY": 38
+ },
+ "monster.lion.up": {
+  "file": "wb2_monster.lion.up.png",
+  "w": 37,
+  "h": 55,
+  "regX": 18,
+  "regY": 28
+ },
+ "monster.lion.up.walk.1": {
+  "file": "wb2_monster.lion.up.walk.1.png",
+  "w": 37,
+  "h": 51,
+  "regX": 18,
+  "regY": 26
+ },
+ "monster.lion.up.walk.2": {
+  "file": "wb2_monster.lion.up.walk.2.png",
+  "w": 38,
+  "h": 62,
+  "regX": 19,
+  "regY": 31
+ },
+ "monster.lion": {
+  "file": "wb2_monster.lion.png",
+  "w": 84,
+  "h": 45,
+  "regX": 42,
+  "regY": 23
+ },
+ "monster.lion.plan": {
+  "file": "wb2_monster.lion.plan.png",
+  "w": 84,
+  "h": 45,
+  "regX": 42,
+  "regY": 23
+ },
+ "monster.lion.hero": {
+  "file": "wb2_monster.lion.hero.png",
+  "w": 84,
+  "h": 45,
+  "regX": 42,
+  "regY": 23
+ },
+ "building.factory.blue": {
+  "file": "wb2_building.factory.blue.png",
+  "w": 50,
+  "h": 57,
+  "regX": 19,
+  "regY": 15
+ },
+ "building.windmill.1": {
+  "file": "wb2_building.windmill.1.png",
+  "w": 57,
+  "h": 69,
+  "regX": 20,
+  "regY": 32
+ },
+ "building.windmill.4": {
+  "file": "wb2_building.windmill.4.png",
+  "w": 57,
+  "h": 69,
+  "regX": 20,
+  "regY": 32
+ },
+ "building.windmill.3": {
+  "file": "wb2_building.windmill.3.png",
+  "w": 57,
+  "h": 69,
+  "regX": 20,
+  "regY": 32
+ },
+ "building.windmill.2": {
+  "file": "wb2_building.windmill.2.png",
+  "w": 57,
+  "h": 69,
+  "regX": 20,
+  "regY": 32
+ },
+ "building.house": {
+  "file": "wb2_building.house.png",
+  "w": 61,
+  "h": 41,
+  "regX": 19,
+  "regY": 10
+ },
+ "building.nursery": {
+  "file": "wb2_building.nursery.png",
+  "w": 57,
+  "h": 49,
+  "regX": 17,
+  "regY": 11
+ },
+ "building.garage": {
+  "file": "wb2_building.garage.png",
+  "w": 38,
+  "h": 48,
+  "regX": 7,
+  "regY": 14
+ },
+ "building.factory.plan": {
+  "file": "wb2_building.factory.plan.png",
+  "w": 25,
+  "h": 28,
+  "regX": 12,
+  "regY": 14
+ },
+ "building.house.plan": {
+  "file": "wb2_building.house.plan.png",
+  "w": 31,
+  "h": 21,
+  "regX": 15,
+  "regY": 8
+ },
+ "building.windmill.plan": {
+  "file": "wb2_building.windmill.plan.png",
+  "w": 28,
+  "h": 35,
+  "regX": 14,
+  "regY": 18
+ },
+ "building.garage.plan": {
+  "file": "wb2_building.garage.plan.png",
+  "w": 19,
+  "h": 23,
+  "regX": 10,
+  "regY": 13
+ },
+ "building.nursery.plan": {
+  "file": "wb2_building.nursery.plan.png",
+  "w": 28,
+  "h": 25,
+  "regX": 14,
+  "regY": 13
+ },
+ "vehicle.freezebot.plan": {
+  "file": "wb2_vehicle.freezebot.plan.png",
+  "w": 26,
+  "h": 28,
+  "regX": 13,
+  "regY": 14
+ },
+ "terrain.tree4": {
+  "file": "wb2_terrain.tree4.png",
+  "w": 75,
+  "h": 103,
+  "regX": 24,
+  "regY": 19
+ },
+ "terrain.tree3": {
+  "file": "wb2_terrain.tree3.png",
+  "w": 75,
+  "h": 93,
+  "regX": 24,
+  "regY": 9
+ },
+ "terrain.tree2": {
+  "file": "wb2_terrain.tree2.png",
+  "w": 75,
+  "h": 121,
+  "regX": 24,
+  "regY": 37
+ },
+ "terrain.street_undiggable": {
+  "file": "wb2_terrain.street_undiggable.png",
+  "w": 75,
+  "h": 84,
+  "regX": 24,
+  "regY": 0
+ },
+ "terrain.street10": {
+  "file": "wb2_terrain.street10.png",
+  "w": 75,
+  "h": 84,
+  "regX": 24,
+  "regY": 0
+ },
+ "terrain.street9": {
+  "file": "wb2_terrain.street9.png",
+  "w": 75,
+  "h": 84,
+  "regX": 24,
+  "regY": 0
+ },
+ "terrain.street8": {
+  "file": "wb2_terrain.street8.png",
+  "w": 75,
+  "h": 84,
+  "regX": 24,
+  "regY": 0
+ },
+ "terrain.street7": {
+  "file": "wb2_terrain.street7.png",
+  "w": 75,
+  "h": 84,
+  "regX": 24,
+  "regY": 0
+ },
+ "terrain.street6": {
+  "file": "wb2_terrain.street6.png",
+  "w": 75,
+  "h": 84,
+  "regX": 24,
+  "regY": 0
+ },
+ "terrain.street5": {
+  "file": "wb2_terrain.street5.png",
+  "w": 75,
+  "h": 84,
+  "regX": 24,
+  "regY": 0
+ },
+ "terrain.street4": {
+  "file": "wb2_terrain.street4.png",
+  "w": 75,
+  "h": 84,
+  "regX": 24,
+  "regY": 0
+ },
+ "terrain.street3": {
+  "file": "wb2_terrain.street3.png",
+  "w": 75,
+  "h": 84,
+  "regX": 24,
+  "regY": 0
+ },
+ "terrain.street2": {
+  "file": "wb2_terrain.street2.png",
+  "w": 75,
+  "h": 84,
+  "regX": 24,
+  "regY": 0
+ },
+ "terrain.street1": {
+  "file": "wb2_terrain.street1.png",
+  "w": 75,
+  "h": 84,
+  "regX": 24,
+  "regY": 0
+ },
+ "terrain.roadblock": {
+  "file": "wb2_terrain.roadblock.png",
+  "w": 75,
+  "h": 90,
+  "regX": 24,
+  "regY": 6
+ },
+ "terrain.jungle4": {
+  "file": "wb2_terrain.jungle4.png",
+  "w": 75,
+  "h": 88,
+  "regX": 24,
+  "regY": 4
+ },
+ "terrain.jungle3": {
+  "file": "wb2_terrain.jungle3.png",
+  "w": 75,
+  "h": 84,
+  "regX": 24,
+  "regY": 0
+ },
+ "terrain.jungle2": {
+  "file": "wb2_terrain.jungle2.png",
+  "w": 75,
+  "h": 84,
+  "regX": 24,
+  "regY": 0
+ },
+ "terrain.jungle1": {
+  "file": "wb2_terrain.jungle1.png",
+  "w": 75,
+  "h": 84,
+  "regX": 24,
+  "regY": 0
+ },
+ "terrain.cement": {
+  "file": "wb2_terrain.cement.png",
+  "w": 75,
+  "h": 84,
+  "regX": 24,
+  "regY": 0
+ },
+ "terrain.goal": {
+  "file": "wb2_terrain.goal.png",
+  "w": 75,
+  "h": 84,
+  "regX": 24,
+  "regY": 0
+ },
+ "building.factory.hero": {
+  "file": "wb2_building.factory.hero.png",
+  "w": 93,
+  "h": 102,
+  "regX": 47,
+  "regY": 59
+ },
+ "building.house.hero": {
+  "file": "wb2_building.house.hero.png",
+  "w": 101,
+  "h": 70,
+  "regX": 52,
+  "regY": 35
+ },
+ "building.windmill.hero": {
+  "file": "wb2_building.windmill.hero.png",
+  "w": 97,
+  "h": 117,
+  "regX": 41,
+  "regY": 49
+ },
+ "building.garage.hero": {
+  "file": "wb2_building.garage.hero.png",
+  "w": 92,
+  "h": 112,
+  "regX": 49,
+  "regY": 60
+ },
+ "building.nursery.hero": {
+  "file": "wb2_building.nursery.hero.png",
+  "w": 105,
+  "h": 90,
+  "regX": 54,
+  "regY": 46
+ },
+ "vehicle.freezebot.hero": {
+  "file": "wb2_vehicle.freezebot.hero.png",
+  "w": 110,
+  "h": 114,
+  "regX": 53,
+  "regY": 56
+ },
+ "vehicle.freezebot.up": {
+  "file": "wb2_vehicle.freezebot.up.stand.png",
+  "w": 44,
+  "h": 46,
+  "regX": 22,
+  "regY": 23
+ },
+ "vehicle.freezebot.down": {
+  "file": "wb2_vehicle.freezebot.down.stand.png",
+  "w": 44,
+  "h": 53,
+  "regX": 22,
+  "regY": 27
+ },
+ "vehicle.freezebot.left": {
+  "file": "wb2_vehicle.freezebot.left.stand.png",
+  "w": 46,
+  "h": 53,
+  "regX": 23,
+  "regY": 27
+ },
+ "vehicle.freezebot.right": {
+  "file": "wb2_vehicle.freezebot.right.stand.png",
+  "w": 45,
+  "h": 53,
+  "regX": 23,
+  "regY": 27
+ },
+ "building.windmill": {
+  "file": "wb2_building.windmill.1.png",
+  "w": 57,
+  "h": 69,
+  "regX": 20,
+  "regY": 32
  }
 };

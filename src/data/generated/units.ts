@@ -13,6 +13,7 @@ export const UNIT_DATA: UnitData = {
    },
    "terrain": [
     "normal",
+    "street",
     "swamp"
    ],
    "recipe": {
@@ -37,7 +38,10 @@ export const UNIT_DATA: UnitData = {
    },
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "defender2": {
    "id": "defender2",
@@ -49,6 +53,7 @@ export const UNIT_DATA: UnitData = {
    },
    "terrain": [
     "normal",
+    "street",
     "rocky",
     "swamp"
    ],
@@ -74,7 +79,10 @@ export const UNIT_DATA: UnitData = {
    },
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "treebot": {
    "id": "treebot",
@@ -88,6 +96,7 @@ export const UNIT_DATA: UnitData = {
    },
    "terrain": [
     "normal",
+    "street",
     "swamp"
    ],
    "recipe": {
@@ -104,7 +113,10 @@ export const UNIT_DATA: UnitData = {
    "attack": null,
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "defender3": {
    "id": "defender3",
@@ -116,6 +128,7 @@ export const UNIT_DATA: UnitData = {
    },
    "terrain": [
     "normal",
+    "street",
     "rocky",
     "swamp"
    ],
@@ -142,7 +155,10 @@ export const UNIT_DATA: UnitData = {
    },
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "repairbot": {
    "id": "repairbot",
@@ -154,6 +170,7 @@ export const UNIT_DATA: UnitData = {
    },
    "terrain": [
     "normal",
+    "street",
     "rocky",
     "swamp"
    ],
@@ -174,10 +191,14 @@ export const UNIT_DATA: UnitData = {
     "treebot",
     "defender",
     "defender2",
-    "repairbot"
+    "repairbot",
+    "freezebot"
    ],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "buggy": {
    "id": "buggy",
@@ -189,6 +210,7 @@ export const UNIT_DATA: UnitData = {
    },
    "terrain": [
     "normal",
+    "street",
     "swamp"
    ],
    "recipe": {
@@ -205,7 +227,10 @@ export const UNIT_DATA: UnitData = {
    "attack": null,
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "dirtbuggy": {
    "id": "dirtbuggy",
@@ -217,6 +242,7 @@ export const UNIT_DATA: UnitData = {
    },
    "terrain": [
     "normal",
+    "street",
     "rocky",
     "swamp"
    ],
@@ -234,7 +260,10 @@ export const UNIT_DATA: UnitData = {
    "attack": null,
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "steamshovel": {
    "id": "steamshovel",
@@ -248,6 +277,7 @@ export const UNIT_DATA: UnitData = {
    },
    "terrain": [
     "normal",
+    "street",
     "swamp"
    ],
    "recipe": {
@@ -264,7 +294,10 @@ export const UNIT_DATA: UnitData = {
    "attack": null,
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "dumptruck": {
    "id": "dumptruck",
@@ -276,6 +309,7 @@ export const UNIT_DATA: UnitData = {
    },
    "terrain": [
     "normal",
+    "street",
     "rocky",
     "swamp"
    ],
@@ -293,7 +327,10 @@ export const UNIT_DATA: UnitData = {
    "attack": null,
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "forklift": {
    "id": "forklift",
@@ -305,6 +342,7 @@ export const UNIT_DATA: UnitData = {
    },
    "terrain": [
     "normal",
+    "street",
     "swamp"
    ],
    "recipe": {
@@ -321,7 +359,10 @@ export const UNIT_DATA: UnitData = {
    "attack": null,
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "dozer": {
    "id": "dozer",
@@ -334,6 +375,7 @@ export const UNIT_DATA: UnitData = {
    },
    "terrain": [
     "normal",
+    "street",
     "swamp"
    ],
    "recipe": {
@@ -350,7 +392,10 @@ export const UNIT_DATA: UnitData = {
    "attack": null,
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "tugboat": {
    "id": "tugboat",
@@ -378,7 +423,10 @@ export const UNIT_DATA: UnitData = {
    "attack": null,
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "freighter": {
    "id": "freighter",
@@ -406,7 +454,10 @@ export const UNIT_DATA: UnitData = {
    "attack": null,
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "speedboat": {
    "id": "speedboat",
@@ -444,7 +495,10 @@ export const UNIT_DATA: UnitData = {
    },
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "duck": {
    "id": "duck",
@@ -456,6 +510,7 @@ export const UNIT_DATA: UnitData = {
    },
    "terrain": [
     "normal",
+    "street",
     "water",
     "whirl",
     "swamp"
@@ -473,7 +528,10 @@ export const UNIT_DATA: UnitData = {
    "attack": null,
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "bluebird": {
    "id": "bluebird",
@@ -485,6 +543,7 @@ export const UNIT_DATA: UnitData = {
    },
    "terrain": [
     "normal",
+    "street",
     "rocky",
     "water",
     "deep",
@@ -503,7 +562,10 @@ export const UNIT_DATA: UnitData = {
    "attack": null,
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "snail": {
    "id": "snail",
@@ -514,7 +576,8 @@ export const UNIT_DATA: UnitData = {
     "move": 0.4
    },
    "terrain": [
-    "normal"
+    "normal",
+    "street"
    ],
    "recipe": {
     "red": 5,
@@ -529,7 +592,10 @@ export const UNIT_DATA: UnitData = {
    "attack": null,
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "frog": {
    "id": "frog",
@@ -541,6 +607,7 @@ export const UNIT_DATA: UnitData = {
    },
    "terrain": [
     "normal",
+    "street",
     "water",
     "whirl",
     "swamp"
@@ -558,7 +625,10 @@ export const UNIT_DATA: UnitData = {
    "attack": null,
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "fish": {
    "id": "fish",
@@ -586,7 +656,49 @@ export const UNIT_DATA: UnitData = {
    "attack": null,
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
+  },
+  "freezebot": {
+   "id": "freezebot",
+   "name": "Freezebot",
+   "kind": "robot",
+   "speed": 2.5,
+   "energy": {
+    "move": 1.2,
+    "freeze": 2
+   },
+   "terrain": [
+    "normal",
+    "street",
+    "swamp"
+   ],
+   "recipe": {
+    "blue": 5,
+    "red": 5,
+    "white": 10,
+    "yellow": 25,
+    "energy": 1
+   },
+   "carries": 0,
+   "shield": 0.5,
+   "dig": false,
+   "push": false,
+   "transplant": false,
+   "waterversion": false,
+   "attack": null,
+   "recharges": [],
+   "restEvery": null,
+   "restFor": null,
+   "freeze": {
+    "duration": 25,
+    "recharge": 3,
+    "range": 2
+   },
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   }
  },
  "buildings": {
@@ -597,7 +709,8 @@ export const UNIT_DATA: UnitData = {
    "speed": 1,
    "energy": {},
    "terrain": [
-    "normal"
+    "normal",
+    "street"
    ],
    "recipe": {
     "red": 40,
@@ -619,7 +732,10 @@ export const UNIT_DATA: UnitData = {
     "dozer"
    ],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "marina": {
    "id": "marina",
@@ -647,7 +763,10 @@ export const UNIT_DATA: UnitData = {
     "speedboat"
    ],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "robot_lab": {
    "id": "robot_lab",
@@ -656,7 +775,8 @@ export const UNIT_DATA: UnitData = {
    "speed": 1,
    "energy": {},
    "terrain": [
-    "normal"
+    "normal",
+    "street"
    ],
    "recipe": {
     "yellow": 25,
@@ -673,10 +793,14 @@ export const UNIT_DATA: UnitData = {
    "recharges": [
     "treebot",
     "defender",
-    "defender2"
+    "defender2",
+    "freezebot"
    ],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "guard_tower": {
    "id": "guard_tower",
@@ -685,7 +809,8 @@ export const UNIT_DATA: UnitData = {
    "speed": 1,
    "energy": {},
    "terrain": [
-    "normal"
+    "normal",
+    "street"
    ],
    "recipe": {
     "red": 25,
@@ -709,7 +834,168 @@ export const UNIT_DATA: UnitData = {
    },
    "recharges": [],
    "restEvery": null,
-   "restFor": null
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
+  },
+  "house": {
+   "id": "house",
+   "name": "House",
+   "kind": "vehicle",
+   "speed": 1,
+   "energy": {},
+   "terrain": [
+    "normal",
+    "street"
+   ],
+   "recipe": {
+    "blue": 20,
+    "green": 20,
+    "yellow": 20,
+    "white": 25
+   },
+   "carries": 0,
+   "shield": 1,
+   "dig": false,
+   "push": false,
+   "transplant": false,
+   "waterversion": false,
+   "attack": null,
+   "recharges": [],
+   "restEvery": null,
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
+  },
+  "factory": {
+   "id": "factory",
+   "name": "Factory",
+   "kind": "vehicle",
+   "speed": 1,
+   "energy": {
+    "make": 7.5
+   },
+   "terrain": [
+    "normal",
+    "street"
+   ],
+   "recipe": {
+    "red": 15,
+    "blue": 10,
+    "white": 25,
+    "energy": 1
+   },
+   "carries": 0,
+   "shield": 1,
+   "dig": false,
+   "push": false,
+   "transplant": false,
+   "waterversion": false,
+   "attack": null,
+   "recharges": [],
+   "restEvery": null,
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": 25,
+   "howLongDoesItTake": 2
+  },
+  "windmill": {
+   "id": "windmill",
+   "name": "Windmill",
+   "kind": "vehicle",
+   "speed": 1,
+   "energy": {
+    "make": 7.5
+   },
+   "terrain": [
+    "normal",
+    "street"
+   ],
+   "recipe": {
+    "red": 15,
+    "wheel": 5,
+    "white": 25,
+    "energy": 1
+   },
+   "carries": 0,
+   "shield": 1,
+   "dig": false,
+   "push": false,
+   "transplant": false,
+   "waterversion": false,
+   "attack": null,
+   "recharges": [],
+   "restEvery": null,
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": 1,
+   "howLongDoesItTake": 2
+  },
+  "garage": {
+   "id": "garage",
+   "name": "Garage",
+   "kind": "vehicle",
+   "speed": 1,
+   "energy": {
+    "make": 7.5
+   },
+   "terrain": [
+    "normal",
+    "street"
+   ],
+   "recipe": {
+    "red": 15,
+    "yellow": 10,
+    "white": 25,
+    "energy": 1
+   },
+   "carries": 0,
+   "shield": 1,
+   "dig": false,
+   "push": false,
+   "transplant": false,
+   "waterversion": false,
+   "attack": null,
+   "recharges": [],
+   "restEvery": null,
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": 4,
+   "howLongDoesItTake": 2
+  },
+  "nursery": {
+   "id": "nursery",
+   "name": "Nursery",
+   "kind": "vehicle",
+   "speed": 1,
+   "energy": {
+    "make": 7.5
+   },
+   "terrain": [
+    "normal",
+    "street"
+   ],
+   "recipe": {
+    "red": 15,
+    "green": 10,
+    "white": 25,
+    "energy": 1
+   },
+   "carries": 0,
+   "shield": 1,
+   "dig": false,
+   "push": false,
+   "transplant": false,
+   "waterversion": false,
+   "attack": null,
+   "recharges": [],
+   "restEvery": null,
+   "restFor": null,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": 2
   }
  },
  "monsters": {
@@ -721,6 +1007,7 @@ export const UNIT_DATA: UnitData = {
    "energy": {},
    "terrain": [
     "normal",
+    "street",
     "swamp"
    ],
    "recipe": {
@@ -744,7 +1031,10 @@ export const UNIT_DATA: UnitData = {
    },
    "recharges": [],
    "restEvery": 6,
-   "restFor": 2
+   "restFor": 2,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "gator": {
    "id": "gator",
@@ -754,6 +1044,7 @@ export const UNIT_DATA: UnitData = {
    "energy": {},
    "terrain": [
     "normal",
+    "street",
     "water",
     "deep",
     "swamp"
@@ -779,7 +1070,10 @@ export const UNIT_DATA: UnitData = {
    },
    "recharges": [],
    "restEvery": 3,
-   "restFor": 1
+   "restFor": 1,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "boulder": {
    "id": "boulder",
@@ -788,7 +1082,8 @@ export const UNIT_DATA: UnitData = {
    "speed": 0,
    "energy": {},
    "terrain": [
-    "normal"
+    "normal",
+    "street"
    ],
    "recipe": {
     "energy": 0
@@ -802,7 +1097,10 @@ export const UNIT_DATA: UnitData = {
    "attack": null,
    "recharges": [],
    "restEvery": 1,
-   "restFor": 10000000
+   "restFor": 10000000,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "scorpion": {
    "id": "scorpion",
@@ -812,6 +1110,7 @@ export const UNIT_DATA: UnitData = {
    "energy": {},
    "terrain": [
     "normal",
+    "street",
     "rocky",
     "swamp"
    ],
@@ -836,7 +1135,10 @@ export const UNIT_DATA: UnitData = {
    },
    "recharges": [],
    "restEvery": 6,
-   "restFor": 2
+   "restFor": 2,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "water_crab": {
    "id": "water_crab",
@@ -870,7 +1172,10 @@ export const UNIT_DATA: UnitData = {
    },
    "recharges": [],
    "restEvery": 3,
-   "restFor": 1
+   "restFor": 1,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "shark": {
    "id": "shark",
@@ -903,7 +1208,10 @@ export const UNIT_DATA: UnitData = {
    },
    "recharges": [],
    "restEvery": 4,
-   "restFor": 1
+   "restFor": 1,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   },
   "trex": {
    "id": "trex",
@@ -913,6 +1221,7 @@ export const UNIT_DATA: UnitData = {
    "energy": {},
    "terrain": [
     "normal",
+    "street",
     "rocky",
     "swamp"
    ],
@@ -937,7 +1246,48 @@ export const UNIT_DATA: UnitData = {
    },
    "recharges": [],
    "restEvery": 12,
-   "restFor": 2
+   "restFor": 2,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
+  },
+  "lion": {
+   "id": "lion",
+   "name": "Lion",
+   "kind": "vehicle",
+   "speed": 4,
+   "energy": {},
+   "terrain": [
+    "normal",
+    "street",
+    "rocky",
+    "swamp"
+   ],
+   "recipe": {
+    "yellow": 40,
+    "energy": 1
+   },
+   "carries": 0,
+   "shield": 0.03,
+   "dig": false,
+   "push": false,
+   "transplant": false,
+   "waterversion": false,
+   "attack": {
+    "damage": [
+     200,
+     400
+    ],
+    "hitsPerMinute": 30,
+    "chance": 100,
+    "searchRange": 4
+   },
+   "recharges": [],
+   "restEvery": 4,
+   "restFor": 1,
+   "freeze": null,
+   "makeHowManyBricks": null,
+   "howLongDoesItTake": null
   }
  }
 };

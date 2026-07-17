@@ -1,4 +1,5 @@
 import { LEVELS } from './data/generated/levels';
+import { LEVELS2 } from './data/generated/levels2';
 import { SPRITE_MANIFEST } from './data/generated/sprites';
 import type { LevelDef } from './data/types';
 import { loadSprites } from './engine/assets';
@@ -32,23 +33,33 @@ function unlockAllActive(): boolean {
   return import.meta.env.DEV && progress.unlockAll;
 }
 
-function isUnlocked(world: number, mission: number): boolean {
+/** 게임별 데이터: 1 = WorldBuilder(월드 5개), 2 = WorldBuilder 2(월드 2개) */
+const GAMES = {
+  1: { title: '레고 WorldBuilder Remake', levels: LEVELS, worlds: 5 },
+  2: { title: '레고 WorldBuilder 2 Remake', levels: LEVELS2, worlds: 2 },
+} as const;
+type GameId = keyof typeof GAMES;
+
+/** 진행 저장 키 — WB1 은 기존 키 유지, WB2 는 "2:" 접두사 */
+function pKey(game: GameId, world: number, mission: number): string {
+  return game === 2 ? `2:${world}.${mission}` : `${world}.${mission}`;
+}
+
+function isUnlocked(game: GameId, world: number, mission: number): boolean {
   if (unlockAllActive() || mission === 1) return true;
   // 해당 미션 번호를 unlocks 에 포함한 선행 미션 중 하나라도 완료됐으면 해금
-  return LEVELS.some(l => l.world === world && l.unlocks.includes(mission)
-    && progress.done[`${world}.${l.mission}`]?.goal);
+  return GAMES[game].levels.some(l => l.world === world && l.unlocks.includes(mission)
+    && progress.done[pKey(game, world, l.mission)]?.goal);
 }
 
 /** 월드 해금: 이전 월드 미션 12 클리어 (unlocks 의 13 = 다음 월드) */
-function isWorldUnlocked(world: number): boolean {
+function isWorldUnlocked(game: GameId, world: number): boolean {
   if (world === 1 || unlockAllActive()) return true;
-  return !!progress.done[`${world - 1}.12`]?.goal;
+  return !!progress.done[pKey(game, world - 1, 12)]?.goal;
 }
 
-/** 현재 구현 완료된 월드 (이후 월드는 다음 단계에서 개방) */
-const IMPLEMENTED_WORLDS = 5;
-
 // ---------- 메뉴 ----------
+let currentGame: GameId = 1;
 let currentWorld = 1;
 
 function showMenu(): void {
@@ -57,14 +68,26 @@ function showMenu(): void {
   $('game').classList.add('hidden');
   const menu = $('menu');
   menu.classList.remove('hidden');
-  menu.innerHTML = '<h1>레고 WorldBuilder Remake</h1>';
+  menu.innerHTML = `<h1>${GAMES[currentGame].title}</h1>`;
+
+  // 게임 선택 (WB1 / WB2)
+  const gameTabs = document.createElement('div');
+  gameTabs.className = 'world-tabs game-tabs';
+  for (const gid of [1, 2] as GameId[]) {
+    const b = document.createElement('button');
+    b.textContent = gid === 1 ? 'WorldBuilder' : 'WorldBuilder 2';
+    if (gid === currentGame) b.style.background = '#ff8f00';
+    b.onclick = () => { currentGame = gid; currentWorld = 1; showMenu(); };
+    gameTabs.appendChild(b);
+  }
+  menu.appendChild(gameTabs);
 
   const tabs = document.createElement('div');
   tabs.className = 'world-tabs';
-  for (let w = 1; w <= 5; w++) {
+  for (let w = 1; w <= GAMES[currentGame].worlds; w++) {
     const b = document.createElement('button');
-    b.textContent = `월드 ${w}${w <= IMPLEMENTED_WORLDS && !isWorldUnlocked(w) ? ' 🔒' : ''}`;
-    b.disabled = w > IMPLEMENTED_WORLDS || !isWorldUnlocked(w);
+    b.textContent = `월드 ${w}${!isWorldUnlocked(currentGame, w) ? ' 🔒' : ''}`;
+    b.disabled = !isWorldUnlocked(currentGame, w);
     if (w === currentWorld) b.style.background = '#ff8f00';
     b.onclick = () => { currentWorld = w; showMenu(); };
     tabs.appendChild(b);
@@ -73,11 +96,11 @@ function showMenu(): void {
 
   const grid = document.createElement('div');
   grid.className = 'missions';
-  for (const lv of LEVELS.filter(l => l.world === currentWorld)) {
+  for (const lv of GAMES[currentGame].levels.filter(l => l.world === currentWorld)) {
     const b = document.createElement('button');
-    const st = progress.done[`${lv.world}.${lv.mission}`];
+    const st = progress.done[pKey(currentGame, lv.world, lv.mission)];
     b.innerHTML = `<span class="num">${lv.mission}${st?.goal ? ' ✅' : ''}${st?.bonus ? '⭐' : ''}</span>${lv.name}`;
-    b.disabled = !isUnlocked(lv.world, lv.mission);
+    b.disabled = !isUnlocked(currentGame, lv.world, lv.mission);
     b.onclick = () => { playSfxEvent('click_mission'); startMission(lv); };
     grid.appendChild(b);
   }
@@ -153,7 +176,7 @@ function startMission(def: LevelDef): void {
 
   // 월드 1 미션 1: 원작 튜토리얼 시퀀스
   tutorial?.destroy();
-  tutorial = def.world === 1 && def.mission === 1 ? new Tutorial(g, cam, canvas) : null;
+  tutorial = def.game !== 2 && def.world === 1 && def.mission === 1 ? new Tutorial(g, cam, canvas) : null;
 
   // ----- 입력 -----
   let dragging = false, lastX = 0, lastY = 0, movedPx = 0;
@@ -244,7 +267,7 @@ function startMission(def: LevelDef): void {
 }
 
 function markDone(def: LevelDef, kind: 'goal' | 'bonus'): void {
-  const k = `${def.world}.${def.mission}`;
+  const k = pKey((def.game ?? 1) as GameId, def.world, def.mission);
   const cur = progress.done[k] ?? { goal: false, bonus: false };
   cur[kind] = true;
   progress.done[k] = cur;

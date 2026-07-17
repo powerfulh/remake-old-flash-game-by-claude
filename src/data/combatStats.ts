@@ -36,4 +36,6 @@ export const COMBAT_STATS: Record<string, CombatStat> = {
   scorpion: { attack: 40, defense: 4 },
   shark: { attack: 40, defense: 0 },
   trex: { attack: 48, defense: 8 },
+  // WB2 — 확정값. scorpion 과 같은 공/방이지만 속도 4 + 공격주기 2.0초(유일하게 빠름)로 차별화
+  lion: { attack: 40, defense: 4 },
 };
