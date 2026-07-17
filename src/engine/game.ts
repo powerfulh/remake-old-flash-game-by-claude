@@ -230,14 +230,14 @@ export class Game {
         }
         if (lv.piles.has(k)) {
           const nt = lv.terrainAt(nx, ny);
-          return !!nt && nt !== 'mountain' && nt !== 'tree' && nt !== 'volcano' && !lv.entityAt(nx, ny);
+          return !!nt && isOpenGround(nt) && !lv.entityAt(nx, ny);
         }
         return false;
       }
       case 'pickup':
         return !!lv.piles.get(k) && e.def.carries > 0 && brickTotal(e.carrying) < e.def.carries;
       case 'drop':
-        return brickTotal(e.carrying) > 0 && t !== 'mountain' && t !== 'tree' && t !== 'volcano';
+        return brickTotal(e.carrying) > 0 && isOpenGround(t);
       case 'dig':
         // 브릭 더미가 있어도 굴착 가능 (더미는 물 위에 남는다)
         return e.def.dig && !e.hasDirt && (t === 'normal' || t === 'swamp')
@@ -247,7 +247,7 @@ export class Game {
           && (!CONFIG.fillRequiresDirt || e.hasDirt)
           && !lv.entityAt(x, y) && e.energy >= (e.def.energy.fill ?? 1);
       case 'uproot':
-        return e.def.transplant && !e.hasTree && t === 'tree' && e.energy >= (e.def.energy.uproot ?? 1);
+        return e.def.transplant && !e.hasTree && terrainFamily(t) === 'tree' && e.energy >= (e.def.energy.uproot ?? 1);
       case 'plant':
         return e.def.transplant && e.hasTree && (t === 'normal' || t === 'swamp')
           && !lv.entityAt(x, y) && !lv.piles.has(k) && e.energy >= (e.def.energy.plant ?? 1);
@@ -290,7 +290,7 @@ export class Game {
   private doDrop(e: Entity, x: number, y: number): void {
     if (brickTotal(e.carrying) === 0) { this.ev.toast('운반 중인 브릭이 없습니다'); return; }
     const t = this.level.terrainAt(x, y);
-    if (!t || t === 'mountain' || t === 'tree' || t === 'volcano') { this.ev.toast('여기엔 내려놓을 수 없습니다'); return; }
+    if (!t || !isOpenGround(t)) { this.ev.toast('여기엔 내려놓을 수 없습니다'); return; }
     this.level.addBricks(x, y, e.carrying, e.carryCharge);
     e.carrying = {};
     playSfxEvent('drop');
@@ -326,7 +326,7 @@ export class Game {
   private doUproot(e: Entity, x: number, y: number): void {
     if (!e.def.transplant) return;
     const lv = this.level;
-    if (lv.terrainAt(x, y) !== 'tree') { this.ev.toast('나무가 없습니다'); return; }
+    if (terrainFamily(lv.terrainAt(x, y)!) !== 'tree') { this.ev.toast('나무가 없습니다'); return; }
     if (e.hasTree) { this.ev.toast('이미 나무를 들고 있습니다'); return; }
     if (!this.spend(e, 'uproot')) return;
     lv.terrain[y][x] = 'normal';
@@ -869,6 +869,13 @@ const RECHARGE_RATE = 34;
 
 /** 밀리는 물체(boulder 등 speed 0)의 이동 애니메이션 속도 (칸/초) */
 const PUSH_ANIM_SPEED = 2.5;
+
+/** 브릭을 놓거나 밀어 넣을 수 있는 열린 지면인지 (장애물 지형 제외) */
+function isOpenGround(t: import('../data/types').TerrainId): boolean {
+  const fam = terrainFamily(t);
+  return fam !== 'mountain' && fam !== 'tree' && fam !== 'volcano'
+    && fam !== 'jungle' && fam !== 'roadblock' && fam !== 'hole' && fam !== 'billboard';
+}
 
 export type AdjacentAction = 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant' | 'push';
 
