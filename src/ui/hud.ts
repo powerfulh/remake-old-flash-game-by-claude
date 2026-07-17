@@ -5,15 +5,15 @@ import { playSfxEvent } from '../engine/audio';
 import { brickTotal, unitDefOf } from '../engine/level';
 
 const BRICK_KO: Record<string, string> = {
-  red: '빨강', yellow: '노랑', blue: '파랑', green: '초록', wheel: '바퀴', energy: '에너지',
+  red: '빨강', yellow: '노랑', blue: '파랑', green: '초록', white: '하양', wheel: '바퀴', energy: '에너지',
 };
 const BRICK_COLOR: Record<string, string> = {
-  red: '#e53935', yellow: '#fdd835', blue: '#1e88e5', green: '#43a047', wheel: '#9e9e9e', energy: '#aeea00',
+  red: '#e53935', yellow: '#fdd835', blue: '#1e88e5', green: '#43a047', white: '#f5f5f5', wheel: '#9e9e9e', energy: '#aeea00',
 };
 /** TerrainId → 위키 표기와 같은 영문 라벨 (몬스터 패널용) */
 const TERRAIN_LABEL: Record<string, string> = {
   normal: 'Normal', rocky: 'Rocky', water: 'Water', deep: 'Deep Water',
-  reef: 'Reefs', swamp: 'Swamp', whirl: 'Whirlpool',
+  reef: 'Reefs', swamp: 'Swamp', whirl: 'Whirlpool', street: 'Street',
 };
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -53,12 +53,19 @@ export class Hud {
 
   updateGoals(): void {
     const g = this.game;
-    const goal = g.level.goals.find(x => !x.bonus);
-    const bonus = g.level.goals.find(x => x.bonus);
-    const parts: string[] = [];
-    if (goal) parts.push(`❗ 미션 골(${goal.target}): ${g.goalDone ? '✅' : '…'}`);
-    if (bonus) parts.push(`⭐ 보너스(${bonus.target}): ${g.bonusDone ? '✅' : '…'}`);
-    $('goal-status').textContent = parts.join('   ');
+    const label = (x: import('../engine/level').Goal) =>
+      x.collect ? `${unitDefOf(x.collect.type)?.name ?? x.collect.type} ${x.collect.count}마리 포획` : x.target;
+    const summarize = (bonus: boolean, icon: string, name: string, allDone: boolean) => {
+      const list = g.level.goals.filter(x => x.bonus === bonus);
+      if (!list.length) return null;
+      const done = list.filter(x => x.done).length;
+      const desc = list.length > 1 ? `${done}/${list.length}` : label(list[0]);
+      return `${icon} ${name}(${desc}): ${allDone ? '✅' : '…'}`;
+    };
+    $('goal-status').textContent = [
+      summarize(false, '❗', '미션 골', g.goalDone),
+      summarize(true, '⭐', '보너스', g.bonusDone),
+    ].filter(Boolean).join('   ');
   }
 
   updateSelection(): void {
@@ -109,7 +116,18 @@ export class Hud {
       <div class="energy-bar"><div class="${e.energy < 25 ? 'low' : ''}" style="width:${Math.max(0, e.energy)}%"></div></div>
       ${carryTxt ? `<div class="carry">${carryTxt}</div>` : ''}
     `;
-    if (e.cls === 'building' || e.cls === 'monster') return; // 액션 버튼 없음
+    if (e.cls === 'building') {
+      // WB2 factory: 출력 색상 변경 (원작 CHANGE COLOR)
+      if (e.type === 'factory') {
+        const b = document.createElement('button');
+        b.textContent = `색 변경 — 현재: ${BRICK_KO[e.factoryColor] ?? e.factoryColor}`;
+        b.onclick = () => this.game.cycleFactoryColor(e);
+        b.onmouseenter = () => playSfxEvent('rollover');
+        actions.appendChild(b);
+      }
+      return;
+    }
+    if (e.cls === 'monster') return; // 액션 버튼 없음
 
     const mode = this.game.mode;
     const btn = (label: string, m: ActionMode | null, extra?: () => void) => {
@@ -216,9 +234,11 @@ export class Hud {
       for (const g of lv.goals) {
         if (g.x !== cell.x || g.y !== cell.y || g.done) continue;
         const label = g.bonus ? '⭐ 보너스 골' : '❗ 미션 골';
-        const who = g.target === 'anything'
-          ? '아무 유닛이나 도달'
-          : `${unitDefOf(g.target)?.name ?? g.target} 도달 필요`;
+        const who = g.collect
+          ? `${unitDefOf(g.collect.type)?.name ?? g.collect.type} ${g.collect.count}마리를 노란 존 안으로 유인`
+          : g.target === 'anything'
+            ? '아무 유닛이나 도달'
+            : `${unitDefOf(g.target)?.name ?? g.target} 도달 필요`;
         lines.push(`<b>${label}</b> — ${who}`);
       }
       const pile = lv.piles.get(lv.key(cell.x, cell.y));

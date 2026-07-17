@@ -1,4 +1,5 @@
 import type { Bricks, LevelDef, MapItem, TerrainId, UnitDef } from '../data/types';
+import { terrainFamily } from '../data/types';
 import { UNIT_DATA } from '../data/generated/units';
 import { TERRAIN_CHARS } from '../data/generated/terrainChars';
 import { CONFIG } from './const';
@@ -36,6 +37,12 @@ export interface Entity {
   attackTarget: number | null;
   /** 예약된 능력: 대상까지 자동 이동 후 도착 시 실행 */
   pendingAction: { action: string; x: number; y: number } | null;
+  /** 빙결 해제 시각 (game.time 기준, WB2 freezebot) */
+  frozenUntil: number;
+  /** 생산 건물 사이클 타이머 (WB2) */
+  prodCd: number;
+  /** factory 출력 색상 (WB2) */
+  factoryColor: 'red' | 'yellow' | 'green' | 'blue' | 'white';
   /** 몬스터 활동/휴식 */
   restTimer: number;
   resting: boolean;
@@ -48,6 +55,10 @@ export interface Goal {
   target: string;
   bonus: boolean;
   done: boolean;
+  /** WB2 포획 골: type 몬스터 count 마리를 존 안에 모으면 달성 */
+  collect?: { count: number; type: string };
+  /** collect 골의 존 영역 (골 위치에서 zone 지형으로 연결된 칸들) */
+  zoneCells?: Set<string>;
 }
 
 export interface PlanInv { unit: string; uses: number; }
@@ -94,7 +105,8 @@ export class LevelState {
         // 아이템 칸: 아이템의 water 플래그로 바닥 지형 결정
         const item = def.items[ch] ?? def.items[ch.toLowerCase()];
         if (!item) { row.push('normal'); continue; }
-        row.push(item.kind === 'whirlpool' ? 'whirl' : item.water ? 'water' : 'normal');
+        const isCollect = (item.kind === 'goal' || item.kind === 'bonusgoal') && !!item.collect;
+        row.push(item.kind === 'whirlpool' ? 'whirl' : isCollect ? 'zone' : item.water ? 'water' : 'normal');
       }
       this.terrain.push(row);
     }
@@ -109,6 +121,20 @@ export class LevelState {
     }
     for (const [unit, uses] of Object.entries(def.inventory)) {
       if (uses > 0) this.planInv.push({ unit, uses });
+    }
+    // WB2 collect 골: 골 위치에서 zone 지형으로 연결된 영역을 플러드필로 수집
+    for (const g of this.goals) {
+      if (!g.collect) continue;
+      const cells = new Set<string>();
+      const stack = [[g.x, g.y]];
+      while (stack.length) {
+        const [cx, cy] = stack.pop()!;
+        const k = this.key(cx, cy);
+        if (cells.has(k) || this.terrainAt(cx, cy) !== 'zone') continue;
+        cells.add(k);
+        stack.push([cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]);
+      }
+      g.zoneCells = cells;
     }
   }
 
@@ -126,10 +152,10 @@ export class LevelState {
         this.mapPlans.set(this.key(x, y), { unit: item.unit, uses: item.uses });
         break;
       case 'goal':
-        this.goals.push({ x, y, target: item.target, bonus: false, done: false });
+        this.goals.push({ x, y, target: item.target, bonus: false, done: false, collect: item.collect });
         break;
       case 'bonusgoal':
-        this.goals.push({ x, y, target: item.target, bonus: true, done: false });
+        this.goals.push({ x, y, target: item.target, bonus: true, done: false, collect: item.collect });
         break;
       case 'whirlpool':
         this.whirls.push({ x, y, channel: item.channel });
@@ -153,6 +179,7 @@ export class LevelState {
       energy: CONFIG.maxEnergy, lastHitAt: -999, chargingAt: -999,
       carrying: {}, carryCharge: CONFIG.maxEnergy, hasDirt: false, hasTree: false,
       attackCd: 0, attackTarget: null, pendingAction: null,
+      frozenUntil: -1, prodCd: 0, factoryColor: 'red',
       restTimer: 0, resting: false, wanderCd: Math.random() * 2, dead: false,
     };
     this.entities.push(e);
@@ -167,7 +194,9 @@ export class LevelState {
   passableFor(e: Entity, x: number, y: number, ignoreOccupancy = false): boolean {
     const t = this.terrainAt(x, y);
     if (!t) return false;
-    if (!e.def.terrain.includes(t)) {
+    // street 변형/시멘트/존/나무 변형을 기본형으로 정규화해 통행권 검사
+    const fam = terrainFamily(t);
+    if (!e.def.terrain.includes(fam as TerrainId)) {
       // whirl 은 water_whirlpool 통행권 필요 — water 통행 유닛도 소용돌이 진입은 명시 목록 기준
       return false;
     }

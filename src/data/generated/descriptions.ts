@@ -148,5 +148,47 @@ export const UNIT_DESCRIPTIONS: UnitDescriptions = {
   "speed": "Medium",
   "actions": "Pick Up, Drop Off",
   "capacity": "10"
+ },
+ "factory": {
+  "text": "If you put a boulder or a tree next to the factory, it'll process it into bricks of whatever color the factory displays.",
+  "terrain": "",
+  "speed": "",
+  "actions": "Change color",
+  "capacity": ""
+ },
+ "garage": {
+  "text": "The Garage specializes in making tires. It'll produce a pile in an empty square next to it, as long as there aren't any tires next to it already.",
+  "terrain": "",
+  "speed": "",
+  "actions": "None.",
+  "capacity": ""
+ },
+ "house": {
+  "text": "People live here... or maybe robots do. Or ducks. I'm not sure, what do you think?",
+  "terrain": "",
+  "speed": "",
+  "actions": "None",
+  "capacity": ""
+ },
+ "nursery": {
+  "text": "The Nursery is a center for growing trees. If any of the spaces next to it is empty, a tree will sprout there!",
+  "terrain": "",
+  "speed": "",
+  "actions": "None.",
+  "capacity": ""
+ },
+ "windmill": {
+  "text": "The Windmill harnesses air power to automatically churn out energy bricks. It will make more as long as there are no energy bricks next to it already, and it has an empty space to put one in.",
+  "terrain": "",
+  "speed": "",
+  "actions": "None.",
+  "capacity": ""
+ },
+ "freezebot": {
+  "text": "He's not the toughest robot, so he just freezes any enemy that gets within two paces! His freeze ray has a short recharge time...",
+  "terrain": "Normal",
+  "speed": "Fast",
+  "actions": "None (Automatically freezes nearby enemies)",
+  "capacity": ""
  }
 };

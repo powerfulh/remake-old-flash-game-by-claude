@@ -36,4 +36,6 @@ export const COMBAT_STATS: Record<string, CombatStat> = {
   scorpion: { attack: 40, defense: 4 },
   shark: { attack: 40, defense: 0 },
   trex: { attack: 48, defense: 8 },
+  // WB2 — ⚠️ placeholder (원작: damage 200–400 / shield 0.03 / 속도 4·공격주기 2초로 빠름)
+  lion: { attack: 40, defense: 4 },
 };

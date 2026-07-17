@@ -22,6 +22,18 @@ const TERRAIN_SPRITE: Record<TerrainId, string> = {
   hole: 'terrain.water_undiggable',
   billboard: 'terrain.billboard',
   whirl: 'terrain.water_whirlpool',
+  // ----- WB2 -----
+  zone: 'terrain.goal',
+  cement: 'terrain.cement',
+  roadblock: 'terrain.roadblock',
+  street: 'terrain.street1', // 패밀리 토큰 (그리드 미등장)
+  street1: 'terrain.street1', street2: 'terrain.street2', street3: 'terrain.street3',
+  street4: 'terrain.street4', street5: 'terrain.street5', street6: 'terrain.street6',
+  street7: 'terrain.street7', street8: 'terrain.street8', street9: 'terrain.street9',
+  street10: 'terrain.street10', street_undiggable: 'terrain.street_undiggable',
+  tree2: 'terrain.tree2', tree3: 'terrain.tree3', tree4: 'terrain.tree4',
+  jungle1: 'terrain.jungle1', jungle2: 'terrain.jungle2',
+  jungle3: 'terrain.jungle3', jungle4: 'terrain.jungle4',
 };
 
 const WATERY = new Set<TerrainId>(['water', 'deep', 'reef', 'whirl']);
@@ -61,9 +73,14 @@ function entPixel(e: Entity): [number, number] {
 }
 
 /** 유닛 스프라이트 이름 결정 — 상태 접미사에서 구체적 → 일반 순으로 폴백 */
-function unitSpriteName(e: Entity, onWater: boolean, time: number): string {
+function unitSpriteName(e: Entity, onWater: boolean, time: number, frozen = false): string {
   const base = e.cls === 'building' ? `building.${e.type}` : `${e.type === 'boulder' ? 'monster' : e.cls === 'monster' ? 'monster' : 'vehicle'}.${e.type}`;
   if (e.type === 'boulder') return hasSprite('monster.boulder') ? 'monster.boulder' : 'object.boulder';
+  // WB2: 빙결된 몬스터
+  if (frozen && hasSprite(`${base}.frozen`)) return `${base}.frozen`;
+  // WB2: factory 는 현재 출력 색상, windmill 은 회전 애니메이션
+  if (e.type === 'factory') return hasSprite(`building.factory.${e.factoryColor}`) ? `building.factory.${e.factoryColor}` : base;
+  if (e.type === 'windmill') return `building.windmill.${Math.floor(time * 4) % 4 + 1}`;
   const parts: string[] = [];
   if (e.def.waterversion && onWater) parts.push('water');
   parts.push(e.dir);
@@ -161,7 +178,7 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
           ctx.ellipse(ex, ey + 6, 24, 11, 0, 0, Math.PI * 2);
           ctx.stroke();
         }
-        const name = unitSpriteName(e, onWater, time);
+        const name = unitSpriteName(e, onWater, time, e.frozenUntil > game.time);
         // 건물 본체 스프라이트는 등록점이 어긋나 있어 바닥 중심 정렬로 그린다
         const drawn = e.cls === 'building'
           ? drawSpriteBottomCentered(ctx, name, ex, ey + 18)

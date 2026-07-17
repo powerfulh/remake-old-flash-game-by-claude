@@ -1,6 +1,6 @@
 // 원본 worldbuilder.dcr 데이터 구조의 TS 타입 정의
 
-/** 지형 타입 — 원본 config 의 terrain 이름과 매핑됨 */
+/** 지형 타입 — 원본 config 의 terrain 이름과 매핑됨. WB2 에서 street/정글 계열 추가 */
 export type TerrainId =
   | 'normal'    // . 평지 (굴착 가능)
   | 'rocky'     // _ 암반 (normal_undiggable)
@@ -13,10 +13,29 @@ export type TerrainId =
   | 'volcano'   // ^ 화산 (통행 불가)
   | 'hole'      // @ 구멍
   | 'billboard' // ~ 광고판
-  | 'whirl';    // 소용돌이 (water_whirlpool — 맵에서는 아이템으로 배치됨)
+  | 'whirl'     // 소용돌이 (water_whirlpool — 맵에서는 아이템으로 배치됨)
+  // ----- WB2 -----
+  | 'zone'      // : 포획 존 (노란 존, 걷기는 평지 취급)
+  | 'cement'    // ` 시멘트 (street 취급)
+  | 'roadblock' // > 로드블록 (통행 불가)
+  | 'street'    // 통행권 토큰 (config terrain 목록용 — 그리드에는 변형만 등장)
+  | 'street1' | 'street2' | 'street3' | 'street4' | 'street5'
+  | 'street6' | 'street7' | 'street8' | 'street9' | 'street10'
+  | 'street_undiggable'
+  | 'tree2' | 'tree3' | 'tree4'          // 나무 변형 (tree 취급)
+  | 'jungle1' | 'jungle2' | 'jungle3' | 'jungle4'; // 정글 장애물 (통행·이식 불가)
 
-export type BrickColor = 'red' | 'yellow' | 'blue' | 'green' | 'wheel' | 'energy';
-export const BRICK_COLORS: BrickColor[] = ['red', 'yellow', 'blue', 'green', 'wheel', 'energy'];
+/** 지형을 통행 판정용 기본형으로 정규화 (street 변형 → street, 나무 변형 → tree 등) */
+export function terrainFamily(t: TerrainId): string {
+  if (t === 'zone') return 'normal';
+  if (t === 'cement' || t === 'street_undiggable' || t.startsWith('street')) return 'street';
+  if (t === 'tree2' || t === 'tree3' || t === 'tree4') return 'tree';
+  if (t.startsWith('jungle')) return 'jungle';
+  return t;
+}
+
+export type BrickColor = 'red' | 'yellow' | 'blue' | 'green' | 'white' | 'wheel' | 'energy';
+export const BRICK_COLORS: BrickColor[] = ['red', 'yellow', 'blue', 'green', 'white', 'wheel', 'energy'];
 
 export type Bricks = Partial<Record<BrickColor, number>>;
 
@@ -28,8 +47,8 @@ export type MapItem =
   | { kind: 'monster'; water: boolean; type: string }
   | { kind: 'pile'; water: boolean; contents: Bricks }
   | { kind: 'plan'; water: boolean; unit: string; uses: number }
-  | { kind: 'goal'; water: boolean; target: string }
-  | { kind: 'bonusgoal'; water: boolean; target: string }
+  | { kind: 'goal'; water: boolean; target: string; collect?: { count: number; type: string } }
+  | { kind: 'bonusgoal'; water: boolean; target: string; collect?: { count: number; type: string } }
   | { kind: 'whirlpool'; water: boolean; channel: number };
 
 export interface LevelDef {
@@ -50,6 +69,8 @@ export interface LevelDef {
   center: [number, number] | null;
   /** 클리어 시 해금되는 미션 번호 (13 = 다음 월드) */
   unlocks: number[];
+  /** 어느 게임의 레벨인지 (1 = WorldBuilder, 2 = WorldBuilder 2). 생략 시 1 */
+  game?: number;
 }
 
 // ---------- 유닛/건물/몬스터 정의 (config) ----------
@@ -86,6 +107,13 @@ export interface UnitDef {
   /** 몬스터 활동/휴식 주기 (초 단위 틱) */
   restEvery: number | null;
   restFor: number | null;
+  // ----- WB2 -----
+  /** freezebot 빙결 능력 */
+  freeze?: { duration: number; recharge: number; range: number } | null;
+  /** 생산 건물: 한 사이클에 만드는 브릭 수 (factory 25 / garage 4 / windmill 1) */
+  makeHowManyBricks?: number | null;
+  /** 생산 사이클 간격 (초) */
+  howLongDoesItTake?: number | null;
 }
 
 export interface UnitData {
