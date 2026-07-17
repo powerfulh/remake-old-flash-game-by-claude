@@ -17,6 +17,11 @@ html, body { height: 100%; overflow: hidden; background: #1a2430; color: #eee; f
 #menu .missions button:disabled { background: #444; border-color: #333; color: #888; cursor: default; }
 #menu .missions button .num { font-size: 16px; font-weight: bold; display: block; }
 #menu label { font-size: 13px; color: #aaa; }
+#btn-reset-progress {
+  background: #455a64 !important; border-color: #263238 !important;
+  font-size: 12px !important; opacity: .8;
+}
+#btn-reset-progress:hover { opacity: 1; }
 
 /* ---------- 게임 ---------- */
 #game { position: relative; }

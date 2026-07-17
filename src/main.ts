@@ -14,24 +14,18 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 
 // ---------- 진행 저장 ----------
 interface Progress {
-  /** "w.m" → { goal, bonus } */
+  /** "w.m" → { goal, bonus } — 클리어 기록 표시 전용 (해금 게이트 없음) */
   done: Record<string, { goal: boolean; bonus: boolean }>;
-  unlockAll: boolean;
 }
 const PKEY = 'wb-remake-progress';
 function loadProgress(): Progress {
-  try { return { done: {}, unlockAll: false, ...JSON.parse(localStorage.getItem(PKEY) ?? '{}') }; }
-  catch { return { done: {}, unlockAll: false }; }
+  try { return { done: {}, ...JSON.parse(localStorage.getItem(PKEY) ?? '{}') }; }
+  catch { return { done: {} }; }
 }
 function saveProgress(p: Progress): void {
   localStorage.setItem(PKEY, JSON.stringify(p));
 }
 let progress = loadProgress();
-
-/** 전체 해금은 개발 모드 전용 (빌드에서는 저장된 플래그도 무시) */
-function unlockAllActive(): boolean {
-  return import.meta.env.DEV && progress.unlockAll;
-}
 
 /** 게임별 데이터: 1 = WorldBuilder(월드 5개), 2 = WorldBuilder 2(월드 2개) */
 const GAMES = {
@@ -43,19 +37,6 @@ type GameId = keyof typeof GAMES;
 /** 진행 저장 키 — WB1 은 기존 키 유지, WB2 는 "2:" 접두사 */
 function pKey(game: GameId, world: number, mission: number): string {
   return game === 2 ? `2:${world}.${mission}` : `${world}.${mission}`;
-}
-
-function isUnlocked(game: GameId, world: number, mission: number): boolean {
-  if (unlockAllActive() || mission === 1) return true;
-  // 해당 미션 번호를 unlocks 에 포함한 선행 미션 중 하나라도 완료됐으면 해금
-  return GAMES[game].levels.some(l => l.world === world && l.unlocks.includes(mission)
-    && progress.done[pKey(game, world, l.mission)]?.goal);
-}
-
-/** 월드 해금: 이전 월드 미션 12 클리어 (unlocks 의 13 = 다음 월드) */
-function isWorldUnlocked(game: GameId, world: number): boolean {
-  if (world === 1 || unlockAllActive()) return true;
-  return !!progress.done[pKey(game, world - 1, 12)]?.goal;
 }
 
 // ---------- 메뉴 ----------
@@ -86,8 +67,7 @@ function showMenu(): void {
   tabs.className = 'world-tabs';
   for (let w = 1; w <= GAMES[currentGame].worlds; w++) {
     const b = document.createElement('button');
-    b.textContent = `월드 ${w}${!isWorldUnlocked(currentGame, w) ? ' 🔒' : ''}`;
-    b.disabled = !isWorldUnlocked(currentGame, w);
+    b.textContent = `월드 ${w}`;
     if (w === currentWorld) b.style.background = '#ff8f00';
     b.onclick = () => { currentWorld = w; showMenu(); };
     tabs.appendChild(b);
@@ -100,23 +80,22 @@ function showMenu(): void {
     const b = document.createElement('button');
     const st = progress.done[pKey(currentGame, lv.world, lv.mission)];
     b.innerHTML = `<span class="num">${lv.mission}${st?.goal ? ' ✅' : ''}${st?.bonus ? '⭐' : ''}</span>${lv.name}`;
-    b.disabled = !isUnlocked(currentGame, lv.world, lv.mission);
     b.onclick = () => { playSfxEvent('click_mission'); startMission(lv); };
     grid.appendChild(b);
   }
   menu.appendChild(grid);
 
-  // 전체 해금 체크박스는 개발 모드에서만 렌더 (빌드 배포본에는 노출하지 않음)
-  if (import.meta.env.DEV) {
-    const opt = document.createElement('label');
-    opt.innerHTML = `<input type="checkbox" ${progress.unlockAll ? 'checked' : ''}/> 전체 미션 해금 (검토용)`;
-    opt.querySelector('input')!.onchange = ev => {
-      progress.unlockAll = (ev.target as HTMLInputElement).checked;
-      saveProgress(progress);
-      showMenu();
-    };
-    menu.appendChild(opt);
-  }
+  // 클리어 기록(✅/⭐) 초기화
+  const reset = document.createElement('button');
+  reset.id = 'btn-reset-progress';
+  reset.textContent = '진행 기록 초기화';
+  reset.onclick = () => {
+    if (!confirm('모든 클리어 기록(✅/⭐)을 초기화할까요?')) return;
+    progress = { done: {} };
+    saveProgress(progress);
+    showMenu();
+  };
+  menu.appendChild(reset);
 }
 
 // ---------- 게임 루프 ----------
