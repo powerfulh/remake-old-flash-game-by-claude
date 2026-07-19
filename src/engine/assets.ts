@@ -51,21 +51,46 @@ function applyMatte(img: HTMLImageElement): CanvasImageSource {
   return cv;
 }
 
-/** 매니페스트의 스프라이트 이름 목록을 미리 로드 */
+const pending = new Set<string>();
+/** 최종 실패 횟수 (지연 재시도 상한 판단용) */
+const failCount = new Map<string, number>();
+const MAX_LAZY_RETRIES = 3;
+
+/**
+ * 스프라이트 1장 로드 — 실패 시 그 애셋만 최대 attempts 회 재시도 (지수 백오프,
+ * 캐시된 오류 응답 회피용 쿼리 부착). 최종 실패는 failCount 에 기록.
+ */
+function loadOne(name: string, attempts = 3): Promise<void> {
+  const info = SPRITE_MANIFEST[name];
+  if (!info || images.has(name) || pending.has(name)) return Promise.resolve();
+  pending.add(name);
+  return new Promise(res => {
+    const tryLoad = (left: number) => {
+      const img = new Image();
+      const bust = left < attempts ? `?r=${attempts - left}` : '';
+      img.src = `${import.meta.env.BASE_URL}assets/sprites/${info.file}${bust}`;
+      img.onload = () => { images.set(name, applyMatte(img)); pending.delete(name); res(); };
+      img.onerror = () => {
+        if (left > 1) {
+          setTimeout(() => tryLoad(left - 1), 300 * (attempts - left + 1));
+        } else {
+          pending.delete(name);
+          failCount.set(name, (failCount.get(name) ?? 0) + 1);
+          res();
+        }
+      };
+    };
+    tryLoad(attempts);
+  });
+}
+
+/** 매니페스트의 스프라이트 이름 목록을 미리 로드 (실패분만 자동 재시도) */
 export async function loadSprites(names: Iterable<string>): Promise<void> {
-  const jobs: Promise<void>[] = [];
-  for (const name of names) {
-    if (images.has(name)) continue;
-    const info = SPRITE_MANIFEST[name];
-    if (!info) continue;
-    const img = new Image();
-    img.src = `${import.meta.env.BASE_URL}assets/sprites/${info.file}`;
-    jobs.push(new Promise(res => {
-      img.onload = () => { images.set(name, applyMatte(img)); res(); };
-      img.onerror = () => res();
-    }));
+  await Promise.all([...names].map(n => loadOne(n)));
+  const failed = [...failCount.keys()];
+  if (failed.length) {
+    console.warn(`스프라이트 ${failed.length}개 로딩 실패 (게임 중 재시도됨):`, failed.join(', '));
   }
-  await Promise.all(jobs);
 }
 
 export function spriteInfo(name: string): SpriteInfo | undefined {
@@ -76,11 +101,19 @@ export function hasSprite(name: string): boolean {
   return !!SPRITE_MANIFEST[name];
 }
 
+/** 그리려는 스프라이트가 미등록이면 (부트 로딩 실패분) 지연 재시도 */
+function lazyRetry(name: string): void {
+  const fails = failCount.get(name) ?? 0;
+  if (fails > 0 && fails <= MAX_LAZY_RETRIES && !pending.has(name)) {
+    void loadOne(name);
+  }
+}
+
 /** 등록점(regX/regY) 기준으로 앵커 좌표에 스프라이트를 그린다 */
 export function drawSprite(ctx: CanvasRenderingContext2D, name: string, ax: number, ay: number): boolean {
   const info = SPRITE_MANIFEST[name];
   const img = images.get(name);
-  if (!info || !img) return false;
+  if (!info || !img) { if (info) lazyRetry(name); return false; }
   ctx.drawImage(img, Math.round(ax - info.regX), Math.round(ay - info.regY));
   return true;
 }
@@ -89,7 +122,7 @@ export function drawSprite(ctx: CanvasRenderingContext2D, name: string, ax: numb
 export function drawSpriteCentered(ctx: CanvasRenderingContext2D, name: string, cx: number, cy: number): boolean {
   const info = SPRITE_MANIFEST[name];
   const img = images.get(name);
-  if (!info || !img) return false;
+  if (!info || !img) { if (info) lazyRetry(name); return false; }
   ctx.drawImage(img, Math.round(cx - info.w / 2), Math.round(cy - info.h / 2));
   return true;
 }
@@ -98,7 +131,7 @@ export function drawSpriteCentered(ctx: CanvasRenderingContext2D, name: string, 
 export function drawSpriteBottomCentered(ctx: CanvasRenderingContext2D, name: string, cx: number, bottomY: number): boolean {
   const info = SPRITE_MANIFEST[name];
   const img = images.get(name);
-  if (!info || !img) return false;
+  if (!info || !img) { if (info) lazyRetry(name); return false; }
   ctx.drawImage(img, Math.round(cx - info.w / 2), Math.round(bottomY - info.h));
   return true;
 }
