@@ -3,7 +3,7 @@ import { LEVELS2 } from './data/generated/levels2';
 import { SPRITE_MANIFEST } from './data/generated/sprites';
 import type { LevelDef } from './data/types';
 import { loadSprites } from './engine/assets';
-import { playMenuBgm, playSfxEvent, playStageBgm, preloadAudio, stopBgm } from './engine/audio';
+import { playMenuBgm, playSfxEvent, playStageBgm, preloadAudio } from './engine/audio';
 import { Game } from './engine/game';
 import { brickTotal } from './engine/level';
 import { Camera, pickCell, render } from './engine/render';
@@ -44,7 +44,8 @@ let currentGame: GameId = 1;
 let currentWorld = 1;
 
 function showMenu(): void {
-  stopBgm();
+  // 메뉴 재렌더(게임/월드 탭 전환)에도 인트로 BGM 이 끊기지 않도록 stop 없이 호출 —
+  // playMenuBgm 내부 가드가 같은 세트면 이어 재생, 미션에서 돌아온 경우에만 곡 전환
   playMenuBgm();
   $('game').classList.add('hidden');
   const menu = $('menu');

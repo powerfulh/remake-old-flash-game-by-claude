@@ -19,7 +19,7 @@ const TERRAIN_SPRITE: Record<TerrainId, string> = {
   reef: 'terrain.water_reefs',
   swamp: 'terrain.swamp',
   volcano: 'terrain.volcano',
-  hole: 'terrain.water_undiggable',
+  hole: '', // 원작에 hole 타일 스프라이트가 없음 — 배경이 뚫린 공동으로 렌더 (아래 특수 처리)
   billboard: 'terrain.billboard',
   whirl: 'terrain.water_whirlpool',
   // ----- WB2 -----
@@ -124,6 +124,7 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
     for (let x = 0; x < lv.w; x++) {
       const [ax, ay] = cellAnchor(x, y);
       const t = lv.terrain[y][x];
+      if (t === 'hole') continue; // 구멍: 아무것도 그리지 않음 — 배경이 그대로 보이는 공동 (원작 방식)
       let name = TERRAIN_SPRITE[t];
       if (t === 'whirl') {
         const f = Math.floor(time * 5) % 4 + 1;
