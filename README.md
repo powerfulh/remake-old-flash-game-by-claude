@@ -2,6 +2,9 @@
 
 레고 WorldBuilder(2004, Shockwave)를 TS + Canvas 2D 웹 게임으로 리메이크.
 
+## 링크
+https://powerfulh.github.io/remake-old-flash-game-by-claude
+
 ## 실행
 
 ```bash
