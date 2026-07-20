@@ -170,10 +170,12 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
     if (ents) {
       ents.sort((a, b) => a.x - b.x);
       for (const e of ents) {
-        let [ex, ey] = entPixel(e);
+        const [ex, groundY] = entPixel(e);
         const onWater = WATERY.has(lv.terrain[e.y][e.x]);
         // 동물(오리/개구리 등)의 통통 튀는 이동 모션 — 칸당 한 번의 포물선 점프.
-        // 물 위를 헤엄칠 때(출발·도착 모두 물)와 느린 달팽이는 제외
+        // 물 위를 헤엄칠 때(출발·도착 모두 물)와 느린 달팽이는 제외.
+        // 점프는 스프라이트에만 적용 — 선택 링은 지면(groundY)에 남아 그림자 역할
+        let ey = groundY;
         if (e.moving && e.cls === 'unit' && e.def.kind === 'animal' && e.def.speed >= 2) {
           const fromWater = WATERY.has(lv.terrain[e.fromY]?.[e.fromX] ?? 'normal');
           if (!(fromWater && onWater)) ey -= Math.sin(Math.min(1, e.moveT) * Math.PI) * 9;
@@ -182,7 +184,7 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
           ctx.strokeStyle = '#ffee58';
           ctx.lineWidth = 2;
           ctx.beginPath();
-          ctx.ellipse(ex, ey + 6, 24, 11, 0, 0, Math.PI * 2);
+          ctx.ellipse(ex, groundY + 6, 24, 11, 0, 0, Math.PI * 2);
           ctx.stroke();
         }
         const name = unitSpriteName(e, onWater, time, e.frozenUntil > game.time);
