@@ -19,7 +19,7 @@ export interface CombatStat {
  * 방어력이 적용되므로 defender류(방20)는 면역 — 원작의 "로봇만 늪을 잘 건넌다" 설계 재현.
  * 플레이어 유닛에게만 적용 (몬스터는 늪 서식이라 면역).
  */
-export const SWAMP_HAZARD = { damage: 9, period: 0.7 };
+export const SWAMP_HAZARD = { damage: 12, period: 0.7 };
 
 export const COMBAT_STATS: Record<string, CombatStat> = {
   // ----- 플레이어 전투 유닛 -----
@@ -33,7 +33,7 @@ export const COMBAT_STATS: Record<string, CombatStat> = {
   gator: { attack: 36, defense: 4 },
   scorpion: { attack: 40, defense: 4 },
   shark: { attack: 40, defense: 0 },
-  trex: { attack: 48, defense: 8 },
+  trex: { attack: 52, defense: 8 },
   // WB2 — 확정값. scorpion 과 같은 공/방이지만 속도 4 + 공격주기 2.0초(유일하게 빠름)로 차별화
   lion: { attack: 40, defense: 4 },
 };
