@@ -35,6 +35,9 @@ export class Hud {
     $('btn-menu').onclick = () => this.cb.onExit();
     $('btn-retry').onclick = () => { playSfxEvent('click_button'); this.cb.onRetry(); };
     $('btn-pause').onclick = () => this.togglePause();
+    // 이전 미션에서 열린 채 남았을 수 있는 모달/토스트 정리
+    this.hideBanner();
+    document.getElementById('toast')?.style.setProperty('opacity', '0');
     this.updatePauseUi();
     this.refreshAll();
   }
