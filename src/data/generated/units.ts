@@ -43,47 +43,6 @@ export const UNIT_DATA: UnitData = {
    "makeHowManyBricks": null,
    "howLongDoesItTake": null
   },
-  "defender2": {
-   "id": "defender2",
-   "name": "Defender",
-   "kind": "robot",
-   "speed": 2,
-   "energy": {
-    "move": 1
-   },
-   "terrain": [
-    "normal",
-    "street",
-    "rocky",
-    "swamp"
-   ],
-   "recipe": {
-    "blue": 40,
-    "yellow": 25,
-    "energy": 1
-   },
-   "carries": 0,
-   "shield": 0.05,
-   "dig": false,
-   "push": false,
-   "transplant": false,
-   "waterversion": false,
-   "attack": {
-    "damage": [
-     150,
-     250
-    ],
-    "hitsPerMinute": 25,
-    "chance": 75,
-    "searchRange": 2
-   },
-   "recharges": [],
-   "restEvery": null,
-   "restFor": null,
-   "freeze": null,
-   "makeHowManyBricks": null,
-   "howLongDoesItTake": null
-  },
   "treebot": {
    "id": "treebot",
    "name": "Treebot",
@@ -111,48 +70,6 @@ export const UNIT_DATA: UnitData = {
    "transplant": true,
    "waterversion": false,
    "attack": null,
-   "recharges": [],
-   "restEvery": null,
-   "restFor": null,
-   "freeze": null,
-   "makeHowManyBricks": null,
-   "howLongDoesItTake": null
-  },
-  "defender3": {
-   "id": "defender3",
-   "name": "Defender Mach 2",
-   "kind": "robot",
-   "speed": 2,
-   "energy": {
-    "move": 1
-   },
-   "terrain": [
-    "normal",
-    "street",
-    "rocky",
-    "swamp"
-   ],
-   "recipe": {
-    "blue": 40,
-    "yellow": 25,
-    "red": 25,
-    "energy": 1
-   },
-   "carries": 0,
-   "shield": 0.05,
-   "dig": false,
-   "push": false,
-   "transplant": false,
-   "waterversion": false,
-   "attack": {
-    "damage": [
-     200,
-     300
-    ],
-    "hitsPerMinute": 25,
-    "chance": 75,
-    "searchRange": 2
-   },
    "recharges": [],
    "restEvery": null,
    "restFor": null,

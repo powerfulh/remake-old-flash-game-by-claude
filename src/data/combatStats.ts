@@ -24,8 +24,6 @@ export const SWAMP_HAZARD = { damage: 9, period: 0.7 };
 export const COMBAT_STATS: Record<string, CombatStat> = {
   // ----- 플레이어 전투 유닛 -----
   defender: { attack: 24, defense: 20 },
-  defender2: { attack: 24, defense: 20 },
-  defender3: { attack: 24, defense: 20 },
   speedboat: { attack: 40, defense: 20 },
   guard_tower: { attack: 20, defense: 32 },
 
@@ -34,7 +32,7 @@ export const COMBAT_STATS: Record<string, CombatStat> = {
   water_crab: { attack: 32, defense: 0 },
   gator: { attack: 36, defense: 4 },
   scorpion: { attack: 40, defense: 4 },
-  shark: { attack: 48, defense: 0 },
+  shark: { attack: 40, defense: 0 },
   trex: { attack: 48, defense: 8 },
   // WB2 — 확정값. scorpion 과 같은 공/방이지만 속도 4 + 공격주기 2.0초(유일하게 빠름)로 차별화
   lion: { attack: 40, defense: 4 },
