@@ -1248,11 +1248,6 @@ export const LEVELS: LevelDef[] = [
      "yellow": 25
     }
    },
-   "y": {
-    "kind": "unit",
-    "water": false,
-    "type": "defender2"
-   },
    "z": {
     "kind": "monster",
     "water": false,
@@ -5766,11 +5761,6 @@ export const LEVELS: LevelDef[] = [
     "kind": "bonusgoal",
     "water": false,
     "target": "snail"
-   },
-   "a": {
-    "kind": "unit",
-    "water": false,
-    "type": "defender2"
    },
    "b": {
     "kind": "unit",

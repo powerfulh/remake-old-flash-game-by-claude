@@ -158,6 +158,13 @@ function startMission(def: LevelDef): void {
   tutorial?.destroy();
   tutorial = def.game !== 2 && def.world === 1 && def.mission === 1 ? new Tutorial(g, cam, canvas) : null;
 
+  // 월드 5 미션 3: 늪지 경로 회피 규칙 안내
+  if (def.game !== 2 && def.world === 5 && def.mission === 3) {
+    hud.banner('🐊 늪지 이동 안내',
+      '모든 유닛은 이동할 때 늪지를 지나지 않고 목표 지점으로 가는 경로가 존재하면 그 경로를 우선합니다.',
+      [['확인', () => {}]]);
+  }
+
   // ----- 입력 -----
   let dragging = false, lastX = 0, lastY = 0, movedPx = 0;
   canvas.onmousedown = e => { dragging = true; movedPx = 0; lastX = e.clientX; lastY = e.clientY; };

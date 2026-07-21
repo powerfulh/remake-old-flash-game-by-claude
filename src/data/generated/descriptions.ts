@@ -44,13 +44,6 @@ export const UNIT_DESCRIPTIONS: UnitDescriptions = {
   "actions": "Disassemble",
   "capacity": ""
  },
- "defender2": {
-  "text": "DEFENDER MACH 2 DESCRIPTION",
-  "terrain": "Normal",
-  "speed": "Medium",
-  "actions": "Attack",
-  "capacity": ""
- },
  "dirtbuggy": {
   "text": "Extra-big tires get the Dirtbuggy over rough terrain. Carries 3 bricks. Use the spacebar to pick up and drop off loads.",
   "terrain": "Normal, Rocky",
