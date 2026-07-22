@@ -204,6 +204,8 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
           ctx.fillText('z z', ex + 10, ey - 18);
         }
         // 에너지 상태 아이콘 (원작 icon.charging / no_energy / low_energy)
+        // 잔량이 있으면 마지막 1회 이동/행동이 허용되고 0 으로 클램프되므로,
+        // "방전" = 정확히 energy 0 (이동 불가 상태와 일치)
         if (e.cls !== 'monster') {
           if (time - e.chargingAt < 0.25) {
             // 충전중: 3프레임 애니메이션
