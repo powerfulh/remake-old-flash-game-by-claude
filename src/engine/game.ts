@@ -218,7 +218,7 @@ export class Game {
       case 'push': {
         // dozer: 바위(boulder) 또는 브릭 더미를 유닛 반대 방향으로 한 칸 밀기.
         // 바위는 물로도 밀 수 있다 (가라앉음 — 물 위의 boulder 골 달성 수단)
-        if (!e.def.push || e.energy < (e.def.energy.push ?? 1)) return false;
+        if (!e.def.push || e.energy <= 0) return false;
         const dx = x - e.x, dy = y - e.y;
         if (Math.abs(dx) + Math.abs(dy) !== 1) return false;
         const nx = x + dx, ny = y + dy;
@@ -241,23 +241,24 @@ export class Game {
       case 'dig':
         // 브릭 더미가 있어도 굴착 가능 (더미는 물 위에 남는다)
         return e.def.dig && !e.hasDirt && (t === 'normal' || t === 'swamp')
-          && !lv.entityAt(x, y) && e.energy >= (e.def.energy.dig ?? 1);
+          && !lv.entityAt(x, y) && e.energy > 0;
       case 'fill':
         return e.def.dig && (t === 'water' || t === 'whirl')
           && (!CONFIG.fillRequiresDirt || e.hasDirt)
-          && !lv.entityAt(x, y) && e.energy >= (e.def.energy.fill ?? 1);
+          && !lv.entityAt(x, y) && e.energy > 0;
       case 'uproot':
-        return e.def.transplant && !e.hasTree && terrainFamily(t) === 'tree' && e.energy >= (e.def.energy.uproot ?? 1);
+        return e.def.transplant && !e.hasTree && terrainFamily(t) === 'tree' && e.energy > 0;
       case 'plant':
         return e.def.transplant && e.hasTree && (t === 'normal' || t === 'swamp')
-          && !lv.entityAt(x, y) && !lv.piles.has(k) && e.energy >= (e.def.energy.plant ?? 1);
+          && !lv.entityAt(x, y) && !lv.piles.has(k) && e.energy > 0;
     }
   }
 
   private spend(e: Entity, action: string): boolean {
     const cost = e.def.energy[action] ?? e.def.energy.move ?? 1;
-    if (e.energy < cost) { this.ev.toast('에너지 부족!'); return false; }
-    e.energy -= cost;
+    // 잔량이 비용보다 적어도 0 이 아니면 마지막 한 번은 허용 — 확실히 방전시킨다
+    if (e.energy <= 0) { this.ev.toast('에너지 부족!'); return false; }
+    e.energy = Math.max(0, e.energy - cost);
     return true;
   }
 
@@ -304,6 +305,7 @@ export class Game {
     if (e.hasDirt) { this.ev.toast('이미 흙을 싣고 있습니다 — 먼저 FILL 하세요'); return; }
     if (lv.entityAt(x, y)) { this.ev.toast('유닛이 있는 칸은 팔 수 없습니다'); return; }
     if (!this.spend(e, 'dig')) return;
+    e.dirtSwamp = lv.terrainAt(x, y) === 'swamp'; // 늪흙은 메운 곳을 늪으로 만든다
     lv.terrain[y][x] = 'water';
     e.hasDirt = true;
     playSfxEvent('dig_ground');
@@ -317,8 +319,10 @@ export class Game {
     if (CONFIG.fillRequiresDirt && !e.hasDirt) { this.ev.toast('먼저 DIG 로 흙을 퍼 오세요'); return; }
     if (lv.entityAt(x, y)) { this.ev.toast('유닛이 있는 칸은 메울 수 없습니다'); return; }
     if (!this.spend(e, 'fill')) return;
-    lv.terrain[y][x] = 'normal';
+    // 퍼 온 흙의 속성을 따라간다: 늪흙으로 메우면 늪, 일반 흙이면 평지 (원작 동작)
+    lv.terrain[y][x] = e.dirtSwamp ? 'swamp' : 'normal';
     e.hasDirt = false;
+    e.dirtSwamp = false;
     playSfxEvent('fill_ground');
     this.ev.selectionChanged();
   }
@@ -566,7 +570,7 @@ export class Game {
     e.attackCd -= dt; // freezebot 은 attack 이 없어 attackCd 를 빙결 쿨다운으로 사용
     if (e.attackCd > 0) return;
     const cost = e.def.energy.freeze ?? 2;
-    if (e.energy < cost) return;
+    if (e.energy <= 0) return;
     let best: Entity | null = null, bd = Infinity;
     for (const m of this.level.entities) {
       if (m.dead || m.cls !== 'monster' || m.type === 'boulder') continue;
@@ -576,7 +580,7 @@ export class Game {
     }
     if (!best) return;
     e.attackCd = fz.recharge;
-    e.energy -= cost;
+    e.energy = Math.max(0, e.energy - cost);
     e.dir = DIR_OF(Math.sign(best.x - e.x), Math.sign(best.y - e.y));
     best.frozenUntil = this.time + fz.duration;
     best.path = [];
@@ -592,7 +596,7 @@ export class Game {
     if (e.prodCd < cycle) return;
     e.prodCd = 0;
     const cost = e.def.energy.make ?? 7.5;
-    if (e.energy < cost) return;
+    if (e.energy <= 0) return;
     const lv = this.level;
     const DIRS = [[0, -1], [0, 1], [-1, 0], [1, 0]] as const;
     const adj = DIRS.map(([dx, dy]) => ({ x: e.x + dx, y: e.y + dy }))
@@ -603,7 +607,7 @@ export class Game {
     };
     const produced = (c: { x: number; y: number }) => {
       this.effects.push({ x: c.x, y: c.y, kind: 'build', t: 0 });
-      e.energy -= cost;
+      e.energy = Math.max(0, e.energy - cost);
     };
     switch (e.type) {
       case 'factory': {
@@ -741,8 +745,7 @@ export class Game {
     e.path.shift();
     if (!isMonster) {
       const cost = e.def.energy.move ?? 1;
-      if (e.energy < cost) { e.path = []; return; }
-      e.energy -= cost;
+      e.energy = Math.max(0, e.energy - cost); // 잔량 부족이어도 마지막 한 걸음은 허용
     }
     e.fromX = e.x; e.fromY = e.y;
     e.dir = DIR_OF(next.x - e.x, next.y - e.y);

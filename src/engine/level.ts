@@ -30,6 +30,8 @@ export interface Entity {
   /** 운반 중인 에너지 브릭의 충전량 (0~100) */
   carryCharge: number;
   hasDirt: boolean;
+  /** 싣고 있는 흙이 늪에서 퍼 온 것인지 — 메우면 그 칸이 늪이 된다 (원작 동작) */
+  dirtSwamp: boolean;
   hasTree: boolean;
   /** 공격 쿨다운(초) */
   attackCd: number;
@@ -177,7 +179,7 @@ export class LevelState {
       id: nextId++, cls, type, def, x, y, dir: 'down',
       fromX: x, fromY: y, moveT: 1, moving: false, path: [],
       energy: CONFIG.maxEnergy, lastHitAt: -999, chargingAt: -999,
-      carrying: {}, carryCharge: CONFIG.maxEnergy, hasDirt: false, hasTree: false,
+      carrying: {}, carryCharge: CONFIG.maxEnergy, hasDirt: false, dirtSwamp: false, hasTree: false,
       attackCd: 0, attackTarget: null, pendingAction: null,
       frozenUntil: -1, prodCd: 0, factoryColor: 'red',
       restTimer: 0, resting: false, wanderCd: Math.random() * 2, dead: false,
