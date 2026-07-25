@@ -305,6 +305,7 @@ export class Game {
     if (e.hasDirt) { this.ev.toast('이미 흙을 싣고 있습니다 — 먼저 FILL 하세요'); return; }
     if (lv.entityAt(x, y)) { this.ev.toast('유닛이 있는 칸은 팔 수 없습니다'); return; }
     if (!this.spend(e, 'dig')) return;
+    e.dirtSwamp = lv.terrainAt(x, y) === 'swamp'; // 늪흙은 메운 곳을 늪으로 만든다
     lv.terrain[y][x] = 'water';
     e.hasDirt = true;
     playSfxEvent('dig_ground');
@@ -318,8 +319,10 @@ export class Game {
     if (CONFIG.fillRequiresDirt && !e.hasDirt) { this.ev.toast('먼저 DIG 로 흙을 퍼 오세요'); return; }
     if (lv.entityAt(x, y)) { this.ev.toast('유닛이 있는 칸은 메울 수 없습니다'); return; }
     if (!this.spend(e, 'fill')) return;
-    lv.terrain[y][x] = 'normal';
+    // 퍼 온 흙의 속성을 따라간다: 늪흙으로 메우면 늪, 일반 흙이면 평지 (원작 동작)
+    lv.terrain[y][x] = e.dirtSwamp ? 'swamp' : 'normal';
     e.hasDirt = false;
+    e.dirtSwamp = false;
     playSfxEvent('fill_ground');
     this.ev.selectionChanged();
   }
