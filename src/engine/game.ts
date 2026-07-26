@@ -165,9 +165,7 @@ export class Game {
       if (!feasible) {
         this.ev.toast('그 칸에는 이 능력을 사용할 수 없습니다');
       } else {
-        const path = findPathAdjacent(lv.w, lv.h, { x: sel.x, y: sel.y }, { x, y },
-          (px, py) => lv.passableFor(sel, px, py),
-          (px, py) => lv.moveCost(sel, px, py));
+        const path = this.unitPathAdjacent(sel, x, y);
         if (!path) {
           this.ev.toast('그 위치까지 이동할 수 없습니다');
         } else {
@@ -184,10 +182,7 @@ export class Game {
 
   commandMove(e: Entity, x: number, y: number): void {
     if (e.energy <= 0) { this.ev.toast('에너지가 없습니다!'); return; }
-    const lv = this.level;
-    const path = findPath(lv.w, lv.h, { x: e.x, y: e.y }, { x, y },
-      (px, py) => lv.passableFor(e, px, py),
-      (px, py) => lv.moveCost(e, px, py));
+    const path = this.unitPath(e, x, y);
     if (!path) { this.ev.toast('갈 수 없는 곳입니다'); return; }
     e.path = path;
     e.attackTarget = null;
@@ -195,11 +190,34 @@ export class Game {
     playSfxEvent('move');
   }
 
-  private approach(e: Entity, x: number, y: number): void {
+  /**
+   * 플레이어 유닛 경로 탐색 — 늪 절대 회피 2패스:
+   * 1차는 늪을 통행 불가로 두고 탐색, 실패할 때만 늪 허용(비용 페널티 유지).
+   * (목적지 자체가 늪이면 1차에서도 그 칸만 허용)
+   */
+  private unitPath(e: Entity, tx: number, ty: number): { x: number; y: number }[] | null {
     const lv = this.level;
-    const path = findPathAdjacent(lv.w, lv.h, { x: e.x, y: e.y }, { x, y },
-      (px, py) => lv.passableFor(e, px, py),
-      (px, py) => lv.moveCost(e, px, py));
+    const noSwamp = (px: number, py: number) =>
+      lv.passableFor(e, px, py) && (lv.terrainAt(px, py) !== 'swamp' || (px === tx && py === ty));
+    return findPath(lv.w, lv.h, { x: e.x, y: e.y }, { x: tx, y: ty }, noSwamp, () => 1)
+      ?? findPath(lv.w, lv.h, { x: e.x, y: e.y }, { x: tx, y: ty },
+        (px, py) => lv.passableFor(e, px, py),
+        (px, py) => lv.moveCost(e, px, py));
+  }
+
+  /** 대상 인접 칸까지의 2패스 경로 (늪 절대 회피 우선) */
+  private unitPathAdjacent(e: Entity, tx: number, ty: number): { x: number; y: number }[] | null {
+    const lv = this.level;
+    const noSwamp = (px: number, py: number) =>
+      lv.passableFor(e, px, py) && lv.terrainAt(px, py) !== 'swamp';
+    return findPathAdjacent(lv.w, lv.h, { x: e.x, y: e.y }, { x: tx, y: ty }, noSwamp, () => 1)
+      ?? findPathAdjacent(lv.w, lv.h, { x: e.x, y: e.y }, { x: tx, y: ty },
+        (px, py) => lv.passableFor(e, px, py),
+        (px, py) => lv.moveCost(e, px, py));
+  }
+
+  private approach(e: Entity, x: number, y: number): void {
+    const path = this.unitPathAdjacent(e, x, y);
     if (path) e.path = path;
   }
 
@@ -734,11 +752,13 @@ export class Game {
     if (!isMonster && e.energy <= 0) { e.path = []; return; }
     const next = e.path[0];
     if (!this.level.passableFor(e, next.x, next.y)) {
-      // 막히면 재탐색
+      // 막히면 재탐색 (몬스터는 기존 방식, 유닛은 늪 회피 2패스)
       const goal = e.path[e.path.length - 1];
-      const p = findPath(this.level.w, this.level.h, { x: e.x, y: e.y }, goal,
-        (px, py) => this.level.passableFor(e, px, py),
-        (px, py) => this.level.moveCost(e, px, py));
+      const p = e.cls === 'monster'
+        ? findPath(this.level.w, this.level.h, { x: e.x, y: e.y }, goal,
+          (px, py) => this.level.passableFor(e, px, py),
+          (px, py) => this.level.moveCost(e, px, py))
+        : this.unitPath(e, goal.x, goal.y);
       e.path = p ?? [];
       return;
     }
