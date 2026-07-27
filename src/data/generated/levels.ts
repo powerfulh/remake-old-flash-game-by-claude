@@ -5744,9 +5744,9 @@ export const LEVELS: LevelDef[] = [
    "..................@@@...#......",
    "..d._###__#....e..@@@..##..##..",
    "@.e..##..e.d..c..@@ww..www..##.",
-   "@#..b.e...f.#_..e@ww...##2c#w..",
+   "@#..b.e...f.#_..e@ww...##2c#wh.",
    ".#.b...e##e...._.gww...##ww##..",
-   "..b.##..###.e.##1.ww..###www..@",
+   "..b.##..###.e.##1.ww..###wwi..@",
    "@__.e...ed...###_@@@....w.###.@",
    "..................@@@..#....#..",
    "...@@@@...@@......@@@@...@@...."
@@ -5796,6 +5796,20 @@ export const LEVELS: LevelDef[] = [
     "water": false,
     "unit": "duck",
     "uses": 5
+   },
+   // custom
+   h: {
+    kind: "pile",
+    water: false,
+    contents: {
+      wheel: 4, yellow: 15
+    }
+   },
+   i: {
+    kind: 'plan',
+    water: true,
+    unit: 'steamshovel',
+    uses: 5
    }
   },
   "inventory": {},
