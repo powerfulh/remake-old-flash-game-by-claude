@@ -104,8 +104,8 @@ export class LevelState {
         const ch = def.grid[y][x] ?? '.';
         const t = TERRAIN_CHARS[ch];
         if (t) { row.push(t); continue; }
-        // 아이템 칸: 아이템의 water 플래그로 바닥 지형 결정
-        const item = def.items[ch] ?? def.items[ch.toLowerCase()];
+        // 아이템 칸: 아이템의 water 플래그로 바닥 지형 결정 (키는 원작 Lingo 처럼 케이스 무시)
+        const item = def.items[ch] ?? def.items[ch.toLowerCase()] ?? def.items[ch.toUpperCase()];
         if (!item) { row.push('normal'); continue; }
         const isCollect = (item.kind === 'goal' || item.kind === 'bonusgoal') && !!item.collect;
         row.push(item.kind === 'whirlpool' ? 'whirl' : isCollect ? 'zone' : item.water ? 'water' : 'normal');
@@ -117,7 +117,7 @@ export class LevelState {
       for (let x = 0; x < this.w; x++) {
         const ch = def.grid[y][x] ?? '.';
         if (TERRAIN_CHARS[ch]) continue;
-        const item = def.items[ch] ?? def.items[ch.toLowerCase()];
+        const item = def.items[ch] ?? def.items[ch.toLowerCase()] ?? def.items[ch.toUpperCase()];
         if (item) this.placeItem(x, y, item);
       }
     }

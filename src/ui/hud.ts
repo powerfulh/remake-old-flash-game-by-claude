@@ -81,19 +81,21 @@ export class Hud {
     const carry = brickTotal(e.carrying);
     const carryTxt = carry > 0
       ? `적재: ${Object.entries(e.carrying).filter(([, n]) => n).map(([c, n]) => `${c}×${n}`).join(', ')}`
-      : e.hasDirt ? '적재: 흙 1' : e.hasTree ? '적재: 나무 1' : '';
+      : e.hasDirt ? (e.dirtSwamp ? '적재: 늪흙 1' : '적재: 흙 1') : e.hasTree ? '적재: 나무 1' : '';
     // 원작 위키(wb_help_models / unit info 텍스트) 기반 유닛 정보 카드
     const desc = UNIT_DESCRIPTIONS[e.type];
     const combat = COMBAT_STATS[e.type];
     // 연비: 칸당 이동 에너지 (몬스터는 이동 에너지 미소모라 제외)
     const moveCost = e.cls === 'unit' ? e.def.energy.move : undefined;
-    // 적재량: 항상 config carries 기준으로 표시.
-    // (원작 위키 텍스트는 dumptruck 누락, tugboat 5→10 오기 등 실제 값과 어긋나는 곳이 있음)
+    // 적재량·지형: 항상 config 기준으로 표시.
+    // (원작 위키 텍스트는 dumptruck 적재 누락, tugboat 5→10 오기, 지형은 늪/소용돌이가
+    //  전 유닛에서 빠져 있는 등 실제 동작과 어긋나는 곳이 많음)
     const capacity = e.def.carries > 0 ? `${e.def.carries} Bricks` : '';
+    const terrainTxt = e.def.terrain.map(t => TERRAIN_LABEL[t] ?? t).join(', ');
     const wiki = desc ? `
       <div class="desc">${desc.text}</div>
       <div class="stats">
-        ${desc.terrain ? `<div><span>지형</span>${desc.terrain}</div>` : ''}
+        ${terrainTxt ? `<div><span>지형</span>${terrainTxt}</div>` : ''}
         ${desc.speed ? `<div><span>속도</span>${desc.speed}</div>` : ''}
         ${moveCost != null ? `<div><span>연비</span>에너지 ${moveCost}/칸</div>` : ''}
         ${desc.actions ? `<div><span>능력</span>${desc.actions}</div>` : ''}
