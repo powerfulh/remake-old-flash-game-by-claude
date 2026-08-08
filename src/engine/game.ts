@@ -421,7 +421,10 @@ export class Game {
     const def = unitDefOf(unit);
     if (!def) return { ok: false, reason: '알 수 없는 유닛' };
     const t = lv.terrainAt(x, y);
-    if (!t || !def.terrain.includes(t)) return { ok: false, reason: '이 유닛을 지을 수 없는 지형입니다' };
+    // 통행 판정과 동일하게 지형 패밀리 기준 (존/street 변형 위에도 조립 가능)
+    if (!t || !def.terrain.includes(terrainFamily(t) as import('../data/types').TerrainId)) {
+      return { ok: false, reason: '이 유닛을 지을 수 없는 지형입니다' };
+    }
     if (lv.entityAt(x, y)) return { ok: false, reason: '이미 유닛이 있습니다' };
     const avail: Bricks = {};
     for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
