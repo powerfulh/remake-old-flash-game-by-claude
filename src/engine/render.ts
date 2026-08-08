@@ -226,6 +226,7 @@ export function render(ctx: CanvasRenderingContext2D, game: Game, cam: Camera, t
       }
     }
   }
+  drawDetectionRange(ctx, game);
   drawPlannedPaths(ctx, game);
 
   // 조립/분해 구름, 피격 버스트 이펙트 (원본 프레임 애니메이션)
@@ -306,6 +307,37 @@ function drawCarriedBricks(ctx: CanvasRenderingContext2D, e: Entity, ex: number,
     const name = c === 'energy' ? `carry.energy${energyState(e.carryCharge)}` : `carry.${c}`;
     drawSprite(ctx, name, ex + dx, ey + dy);
   });
+}
+
+/** 셀 윗면 평행사변형 패스 */
+function cellPath(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+  const [ax, ay] = cellAnchor(x, y);
+  ctx.moveTo(ax, ay);
+  ctx.lineTo(ax + STEP_X, ay);
+  ctx.lineTo(ax + STEP_X - SHEAR, ay + STEP_Y);
+  ctx.lineTo(ax - SHEAR, ay + STEP_Y);
+  ctx.closePath();
+}
+
+/** 선택된 몬스터의 탐지 범위(맨해튼 다이아몬드)를 반투명 장판으로 표시 */
+function drawDetectionRange(ctx: CanvasRenderingContext2D, game: Game): void {
+  const sel = game.selected;
+  if (!sel || sel.cls !== 'monster' || !sel.def.attack) return;
+  const r = sel.def.attack.searchRange;
+  const lv = game.level;
+  ctx.save();
+  ctx.beginPath();
+  for (let dy = -r; dy <= r; dy++) {
+    for (let dx = -r; dx <= r; dx++) {
+      if (Math.abs(dx) + Math.abs(dy) > r) continue;
+      const x = sel.x + dx, y = sel.y + dy;
+      if (x < 0 || y < 0 || x >= lv.w || y >= lv.h) continue;
+      cellPath(ctx, x, y);
+    }
+  }
+  ctx.fillStyle = 'rgba(229, 57, 53, .2)';
+  ctx.fill();
+  ctx.restore();
 }
 
 /** 이동 계획 표시 — 유닛의 현재 위치에서 남은 경로의 타일 중심을 잇는 반투명 선 */
