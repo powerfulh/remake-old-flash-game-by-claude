@@ -789,22 +789,21 @@ export class Game {
     if (m.moving || m.path.length) return;
 
     const range = m.def.attack?.searchRange ?? 0;
-    // 탐지 범위 내 플레이어 유닛 추적
-    let target: Entity | null = null;
-    let bd = Infinity;
-    for (const u of this.level.entities) {
-      if (u.dead || u.cls === 'monster') continue;
-      const d = Math.abs(u.x - m.x) + Math.abs(u.y - m.y);
-      if (d <= range && d < bd) { bd = d; target = u; }
-    }
-    if (target && bd > CONFIG.attackAdjacency) {
-      const p = findPathAdjacent(this.level.w, this.level.h, { x: m.x, y: m.y }, { x: target.x, y: target.y },
+    // 탐지 범위 내 플레이어 유닛을 거리순으로 전부 시도 —
+    // 최근접 유닛이 포위돼 접근 불가여도 다음 후보를 쫓는다
+    const candidates = this.level.entities
+      .filter(u => !u.dead && u.cls !== 'monster')
+      .map(u => ({ u, d: Math.abs(u.x - m.x) + Math.abs(u.y - m.y) }))
+      .filter(c => c.d <= range)
+      .sort((a, b) => a.d - b.d);
+    for (const { u, d } of candidates) {
+      if (d <= CONFIG.attackAdjacency) return; // 이미 인접 — 공격은 전투 페이즈가 처리
+      const p = findPathAdjacent(this.level.w, this.level.h, { x: m.x, y: m.y }, { x: u.x, y: u.y },
         (px, py) => this.level.passableFor(m, px, py),
         (px, py) => this.level.terrainAt(px, py) === 'swamp' ? 2 : 1); // 추적 시 늪 페널티 1
       if (p) { m.path = p.slice(0, 2); return; }
-      // 타깃까지 경로가 없으면(도달 불가) 배회로 폴백 — 제자리에 얼어붙지 않도록
     }
-    // 배회
+    // 모든 후보가 접근 불가면 배회로 폴백 — 제자리에 얼어붙지 않도록
     m.wanderCd -= dt;
     if (m.wanderCd <= 0) {
       m.wanderCd = 1.5 + Math.random() * 3;
