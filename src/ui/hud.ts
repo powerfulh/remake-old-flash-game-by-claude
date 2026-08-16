@@ -2,6 +2,7 @@ import type { Game, ActionMode } from '../engine/game';
 import { COMBAT_STATS } from '../data/combatStats';
 import { UNIT_DESCRIPTIONS } from '../data/generated/descriptions';
 import { playSfxEvent } from '../engine/audio';
+import { createVolumeControls } from './volumeControl';
 import { brickTotal, unitDefOf } from '../engine/level';
 
 const BRICK_KO: Record<string, string> = {
@@ -219,7 +220,11 @@ export class Hud {
     if (!overlay) {
       overlay = document.createElement('div');
       overlay.id = 'pause-overlay';
-      overlay.innerHTML = '<div>⏸ 일시정지</div>';
+      const panel = document.createElement('div');
+      panel.className = 'pause-panel';
+      panel.innerHTML = '<div>⏸ 일시정지</div>';
+      panel.appendChild(createVolumeControls());
+      overlay.appendChild(panel);
       $('hud').appendChild(overlay);
     }
     overlay.classList.toggle('hidden', !this.game.paused);
