@@ -20,6 +20,23 @@ let ctx: AudioContext | null = null;
 let bgmGain: GainNode | null = null;
 let sfxGain: GainNode | null = null;
 
+/** 볼륨 (0~1). ensureCtx 이전에 설정돼도 생성 시 반영된다 */
+const volumes = { music: 0.5, sfx: 0.7 };
+
+export function setMusicVolume(v: number): void {
+  volumes.music = Math.min(1, Math.max(0, v));
+  if (bgmGain) bgmGain.gain.value = volumes.music;
+}
+
+export function setSfxVolume(v: number): void {
+  volumes.sfx = Math.min(1, Math.max(0, v));
+  if (sfxGain) sfxGain.gain.value = volumes.sfx;
+}
+
+export function getVolumes(): { music: number; sfx: number } {
+  return { ...volumes };
+}
+
 const buffers = new Map<string, Promise<AudioBuffer | null>>();
 
 interface Segment { buf: AudioBuffer; offset: number; dur: number; }
@@ -33,10 +50,10 @@ function ensureCtx(): AudioContext {
   if (!ctx) {
     ctx = new AudioContext();
     bgmGain = ctx.createGain();
-    bgmGain.gain.value = 0.5;
+    bgmGain.gain.value = volumes.music;
     bgmGain.connect(ctx.destination);
     sfxGain = ctx.createGain();
-    sfxGain.gain.value = 0.7;
+    sfxGain.gain.value = volumes.sfx;
     sfxGain.connect(ctx.destination);
     // 사용자 제스처 전 autoplay 차단 해제
     const resume = () => { ctx?.resume().catch(() => {}); };
