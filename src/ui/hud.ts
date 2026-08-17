@@ -123,13 +123,18 @@ export class Hud {
       ${carryTxt ? `<div class="carry">${carryTxt}</div>` : ''}
     `;
     if (e.cls === 'building') {
-      // WB2 factory: 출력 색상 변경 (원작 CHANGE COLOR)
+      // WB2 factory: 출력 색상 변경 (원작 CHANGE COLOR) + 해체 (원작 제공 기능)
       if (e.type === 'factory') {
-        const b = document.createElement('button');
-        b.textContent = `색 변경 — 현재: ${BRICK_KO[e.factoryColor] ?? e.factoryColor}`;
-        b.onclick = () => this.game.cycleFactoryColor(e);
-        b.onmouseenter = () => playSfxEvent('rollover');
-        actions.appendChild(b);
+        const color = document.createElement('button');
+        color.textContent = `색 변경 — 현재: ${BRICK_KO[e.factoryColor] ?? e.factoryColor}`;
+        color.onclick = () => this.game.cycleFactoryColor(e);
+        color.onmouseenter = () => playSfxEvent('rollover');
+        actions.appendChild(color);
+        const ta = document.createElement('button');
+        ta.textContent = '분해하기 (T)';
+        ta.onclick = () => this.game.takeApart(e);
+        ta.onmouseenter = () => playSfxEvent('rollover');
+        actions.appendChild(ta);
       }
       return;
     }
