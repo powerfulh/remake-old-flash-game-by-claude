@@ -28,7 +28,10 @@ export type TerrainId =
 /** 지형을 통행 판정용 기본형으로 정규화 (street 변형 → street, 나무 변형 → tree 등) */
 export function terrainFamily(t: TerrainId): string {
   if (t === 'zone') return 'normal';
-  if (t === 'cement' || t === 'street_undiggable' || t.startsWith('street')) return 'street';
+  // street_undiggable('-')은 구멍 뚫린 도로 — 원작 config 명명 규칙상 별도 통행 클래스이고
+  // 어떤 유닛도 목록에 없으므로 통행 불가 (normal_undiggable 이 normal 과 구분되는 것과 동일)
+  if (t === 'street_undiggable') return 'street_undiggable';
+  if (t === 'cement' || t.startsWith('street')) return 'street';
   if (t === 'tree2' || t === 'tree3' || t === 'tree4') return 'tree';
   if (t.startsWith('jungle')) return 'jungle';
   return t;

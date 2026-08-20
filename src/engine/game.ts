@@ -899,7 +899,8 @@ const PUSH_ANIM_SPEED = 2.5;
 function isOpenGround(t: import('../data/types').TerrainId): boolean {
   const fam = terrainFamily(t);
   return fam !== 'mountain' && fam !== 'tree' && fam !== 'volcano'
-    && fam !== 'jungle' && fam !== 'roadblock' && fam !== 'hole' && fam !== 'billboard';
+    && fam !== 'jungle' && fam !== 'roadblock' && fam !== 'hole' && fam !== 'billboard'
+    && fam !== 'street_undiggable'; // 도로 구멍 — 브릭이 빠진다
 }
 
 export type AdjacentAction = 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant' | 'push';
