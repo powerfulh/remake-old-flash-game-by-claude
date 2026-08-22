@@ -244,7 +244,9 @@ export class Game {
         if (target && target.type === 'boulder') {
           if (lv.entityAt(nx, ny) || lv.piles.has(lv.key(nx, ny))) return false;
           const nt = lv.terrainAt(nx, ny);
-          return !!nt && (target.def.terrain.includes(nt) || nt === 'water' || nt === 'reef' || nt === 'whirl');
+          // 통행 판정과 동일하게 패밀리 기준 (WB2 boulder 는 street 통행 가능 — 도로로도 밀 수 있음)
+          return !!nt && (target.def.terrain.includes(terrainFamily(nt) as import('../data/types').TerrainId)
+            || nt === 'water' || nt === 'reef' || nt === 'whirl');
         }
         if (lv.piles.has(k)) {
           const nt = lv.terrainAt(nx, ny);
@@ -899,7 +901,8 @@ const PUSH_ANIM_SPEED = 2.5;
 function isOpenGround(t: import('../data/types').TerrainId): boolean {
   const fam = terrainFamily(t);
   return fam !== 'mountain' && fam !== 'tree' && fam !== 'volcano'
-    && fam !== 'jungle' && fam !== 'roadblock' && fam !== 'hole' && fam !== 'billboard';
+    && fam !== 'jungle' && fam !== 'roadblock' && fam !== 'hole' && fam !== 'billboard'
+    && fam !== 'street_undiggable'; // 도로 구멍 — 브릭이 빠진다
 }
 
 export type AdjacentAction = 'pickup' | 'drop' | 'dig' | 'fill' | 'uproot' | 'plant' | 'push';
