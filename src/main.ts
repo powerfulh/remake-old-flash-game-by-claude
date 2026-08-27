@@ -7,7 +7,7 @@ import { playMenuBgm, playSfxEvent, playStageBgm, preloadAudio } from './engine/
 import { Game } from './engine/game';
 import { brickTotal } from './engine/level';
 import { Camera, pickCell, render } from './engine/render';
-import { Hud } from './ui/hud';
+import { DISASSEMBLABLE_BUILDINGS, Hud } from './ui/hud';
 import { createVolumeControls, loadVolumes } from './ui/volumeControl';
 import { Tutorial } from './ui/tutorial';
 
@@ -219,8 +219,8 @@ function startMission(def: LevelDef): void {
           else if (sel.def.push) toggle('push');
         } else if (key === 'x' && sel.def.attack) toggle('attack');
         else if (key === 't') g.takeApart(sel);
-      } else if (sel && sel.type === 'factory' && key === 't') {
-        g.takeApart(sel); // factory 는 건물 중 유일하게 해체 가능 (원작 동작)
+      } else if (sel && DISASSEMBLABLE_BUILDINGS.has(sel.type) && key === 't') {
+        g.takeApart(sel); // 해체 가능 건물 (원작: factory, guard_tower)
       }
       // 버튼 포커스가 남아 스페이스가 버튼을 재클릭하지 않도록
       if (key === ' ') (document.activeElement as HTMLElement | null)?.blur?.();
