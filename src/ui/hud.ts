@@ -17,6 +17,9 @@ const TERRAIN_LABEL: Record<string, string> = {
   reef: 'Reefs', swamp: 'Swamp', whirl: 'Whirlpool', street: 'Street',
 };
 
+/** 원작에서 해체 기능을 제공하는 건물 목록 */
+export const DISASSEMBLABLE_BUILDINGS = new Set(['factory', 'guard_tower']);
+
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 export interface HudCallbacks {
@@ -123,13 +126,16 @@ export class Hud {
       ${carryTxt ? `<div class="carry">${carryTxt}</div>` : ''}
     `;
     if (e.cls === 'building') {
-      // WB2 factory: 출력 색상 변경 (원작 CHANGE COLOR) + 해체 (원작 제공 기능)
+      // WB2 factory: 출력 색상 변경 (원작 CHANGE COLOR)
       if (e.type === 'factory') {
         const color = document.createElement('button');
         color.textContent = `색 변경 — 현재: ${BRICK_KO[e.factoryColor] ?? e.factoryColor}`;
         color.onclick = () => this.game.cycleFactoryColor(e);
         color.onmouseenter = () => playSfxEvent('rollover');
         actions.appendChild(color);
+      }
+      // 원작에서 해체를 제공하는 건물
+      if (DISASSEMBLABLE_BUILDINGS.has(e.type)) {
         const ta = document.createElement('button');
         ta.textContent = '분해하기 (T)';
         ta.onclick = () => this.game.takeApart(e);
