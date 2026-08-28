@@ -30,8 +30,8 @@ let progress = loadProgress();
 
 /** 게임별 데이터: 1 = WorldBuilder(월드 5개), 2 = WorldBuilder 2(월드 2개) */
 const GAMES = {
-  1: { title: 'LEGO WorldBuilder Remake', levels: LEVELS, worlds: 5 },
-  2: { title: 'LEGO WorldBuilder 2 Remake', levels: LEVELS2, worlds: 2 },
+  1: { title: '레고 WorldBuilder Remake', levels: LEVELS, worlds: 5 },
+  2: { title: '레고 WorldBuilder 2 Remake', levels: LEVELS2, worlds: 2 },
 } as const;
 type GameId = keyof typeof GAMES;
 
@@ -220,7 +220,7 @@ function startMission(def: LevelDef): void {
         } else if (key === 'x' && sel.def.attack) toggle('attack');
         else if (key === 't') g.takeApart(sel);
       } else if (sel && DISASSEMBLABLE_BUILDINGS.has(sel.type) && key === 't') {
-        g.takeApart(sel); // 해체 가능 건물 (원작: factory, guard_tower)
+        g.takeApart(sel); // 해체 가능 건물
       }
       // 버튼 포커스가 남아 스페이스가 버튼을 재클릭하지 않도록
       if (key === ' ') (document.activeElement as HTMLElement | null)?.blur?.();
@@ -277,7 +277,7 @@ function endMission(): void {
 // ---------- 부트 ----------
 async function boot(): Promise<void> {
   const menu = $('menu');
-  menu.innerHTML = '<h1>LEGO WorldBuilder Remake</h1><p>애셋 로딩 중…</p>';
+  menu.innerHTML = '<h1>레고 WorldBuilder Remake</h1><p>애셋 로딩 중…</p>';
   loadVolumes();
   await loadSprites(Object.keys(SPRITE_MANIFEST));
   preloadAudio();
