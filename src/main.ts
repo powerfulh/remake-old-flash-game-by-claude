@@ -220,7 +220,7 @@ function startMission(def: LevelDef): void {
         } else if (key === 'x' && sel.def.attack) toggle('attack');
         else if (key === 't') g.takeApart(sel);
       } else if (sel && DISASSEMBLABLE_BUILDINGS.has(sel.type) && key === 't') {
-        g.takeApart(sel); // 해체 가능 건물 (원작: factory, guard_tower)
+        g.takeApart(sel); // 해체 가능 건물
       }
       // 버튼 포커스가 남아 스페이스가 버튼을 재클릭하지 않도록
       if (key === ' ') (document.activeElement as HTMLElement | null)?.blur?.();

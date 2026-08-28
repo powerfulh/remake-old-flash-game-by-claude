@@ -18,7 +18,7 @@ const TERRAIN_LABEL: Record<string, string> = {
 };
 
 /** 원작에서 해체 기능을 제공하는 건물 목록 */
-export const DISASSEMBLABLE_BUILDINGS = new Set(['factory', 'guard_tower']);
+export const DISASSEMBLABLE_BUILDINGS = new Set(['factory', 'guard_tower', 'garage', 'windmill']);
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
